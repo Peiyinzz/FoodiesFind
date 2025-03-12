@@ -9,6 +9,9 @@
       <excludeFolder url="file://$MODULE_DIR$/frontend_backup/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/frontend_backup/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/frontend_backup/build" />
+      <excludeFolder url="file://$MODULE_DIR$/foodiesfind_final/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/foodiesfind_final/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/foodiesfind_final/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
