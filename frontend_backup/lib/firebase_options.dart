@@ -48,7 +48,7 @@ class DefaultFirebaseOptions {
     projectId: 'your-project-id',
     storageBucket: 'your-storage-bucket',
     iosClientId: 'your-ios-client-id',
-    iosBundleId: 'com.example.frontend',
+    iosBundleId: 'com.example.frontend_backup',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -58,6 +58,6 @@ class DefaultFirebaseOptions {
     projectId: 'your-project-id',
     storageBucket: 'your-storage-bucket',
     iosClientId: 'your-ios-client-id',
-    iosBundleId: 'com.example.frontend',
+    iosBundleId: 'com.example.frontend_backup',
   );
 }

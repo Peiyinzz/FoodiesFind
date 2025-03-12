@@ -1,5 +1,9 @@
 // Converted to Groovy build.gradle
 buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.1.2'
         classpath 'com.google.gms:google-services:4.4.0' // for Firebase
@@ -11,18 +15,6 @@ allprojects {
         google()
         mavenCentral()
     }
-}
-
-def newBuildDir = new File(rootProject.layout.buildDirectory.asFile, "../../build")
-rootProject.layout.buildDirectory.set(newBuildDir)
-
-subprojects {
-    def newSubprojectBuildDir = new File(newBuildDir, project.name)
-    project.layout.buildDirectory.set(newSubprojectBuildDir)
-}
-
-subprojects {
-    project.evaluationDependsOn(':app')
 }
 
 tasks.register("clean", Delete) {
