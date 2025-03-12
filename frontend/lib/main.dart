@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MyApp());
 }
 
@@ -15,10 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'FoodiesFind',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        primarySwatch: Colors.green,
-      ),
+      theme: ThemeData(useMaterial3: true, primarySwatch: Colors.green),
       home: const HomePage(),
     );
   }
@@ -50,7 +48,9 @@ class HomePage extends StatelessWidget {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
@@ -253,8 +253,14 @@ class _HorizontalFoodCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(image, height: 100, width: 140, fit: BoxFit.cover)),
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              image,
+              height: 100,
+              width: 140,
+              fit: BoxFit.cover,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
           Row(
@@ -262,7 +268,7 @@ class _HorizontalFoodCard extends StatelessWidget {
               const Icon(Icons.star, color: Colors.orange, size: 16),
               Text(rating.toString()),
             ],
-          )
+          ),
         ],
       ),
     );
