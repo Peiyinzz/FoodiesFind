@@ -6,117 +6,173 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF1F1F1),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Location and Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // HEADER SECTION
+              Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Current Location',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF0E2223),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(40),
+                        bottomRight: Radius.circular(40),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 4,
-                              offset: Offset(0, 2),
+                    ),
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 80),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Location row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Current Location',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(
+                                        Icons.location_on,
+                                        color: Color(0xFFFBAF25),
+                                        size: 16,
+                                      ),
+                                      SizedBox(width: 5),
+                                      Text('Bayan Baru'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Icon(
+                              Icons.notifications_none,
+                              size: 30,
+                              color: Colors.white,
                             ),
                           ],
                         ),
-                        child: Row(
-                          children: const [
-                            Icon(Icons.location_on, size: 16),
-                            SizedBox(width: 5),
-                            Text('Bayan Baru'),
-                          ],
+                        const SizedBox(height: 30),
+                        const Text(
+                          'Looking For\nSomething New?\nGot It!',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Functional Search Field
+                  Positioned(
+                    bottom: -30,
+                    left: 20,
+                    right: 20,
+                    child: Material(
+                      elevation: 4,
+                      borderRadius: BorderRadius.circular(16),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Search',
+                          prefixIcon: const Icon(Icons.search),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                  const Icon(Icons.notifications_none, size: 30),
                 ],
               ),
-              const SizedBox(height: 20),
 
-              const Text(
-                'Looking For\nSomething New?\nGot Ittttt!',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  height: 1.3,
-                ),
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 60),
 
-              // Search Bar
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey.shade200,
-                ),
-              ),
-              const SizedBox(height: 25),
+              // Padded Content Below
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Column(
+                  children: [
+                    // Categories
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: const [
+                        _CategoryIcon(
+                          icon: Icons.location_pin,
+                          label: 'Near Me',
+                        ),
+                        _CategoryIcon(
+                          icon: Icons.restaurant_menu,
+                          label: 'Dishes',
+                        ),
+                        _CategoryIcon(
+                          icon: Icons.storefront,
+                          label: 'Restaurants',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 30),
 
-              // Categories
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: const [
-                  _CategoryIcon(icon: Icons.location_pin, label: 'Near Me'),
-                  _CategoryIcon(icon: Icons.restaurant_menu, label: 'Dishes'),
-                  _CategoryIcon(icon: Icons.storefront, label: 'Restaurants'),
-                ],
-              ),
-              const SizedBox(height: 30),
-
-              // Special Offers
-              const _SectionHeader(title: 'Special Offers'),
-              const _FoodCard(
-                image: 'https://via.placeholder.com/80',
-                title: 'Burger King',
-                subtitle: '3.7 km away',
-                rating: 4.5,
-              ),
-              const SizedBox(height: 20),
-
-              // Restaurants
-              const _SectionHeader(title: 'Restaurants'),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: const [
-                    _HorizontalFoodCard(
-                      image: 'https://via.placeholder.com/120',
-                      title: 'Seafood maki sushi',
+                    // Special Offers
+                    const _SectionHeader(title: 'Special Offers'),
+                    const _FoodCard(
+                      image: 'https://via.placeholder.com/80',
+                      title: 'Burger King',
+                      subtitle: '3.7 km away',
                       rating: 4.5,
                     ),
-                    _HorizontalFoodCard(
-                      image: 'https://via.placeholder.com/120',
-                      title: 'Shrimp Pasta',
-                      rating: 4.3,
+                    const SizedBox(height: 20),
+
+                    // Restaurants
+                    const _SectionHeader(title: 'Restaurants'),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: const [
+                          _HorizontalFoodCard(
+                            image: 'https://via.placeholder.com/120',
+                            title: 'Seafood maki sushi',
+                            rating: 4.5,
+                          ),
+                          _HorizontalFoodCard(
+                            image: 'https://via.placeholder.com/120',
+                            title: 'Shrimp Pasta',
+                            rating: 4.3,
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
