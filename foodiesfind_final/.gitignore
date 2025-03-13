@@ -1,0 +1,56 @@
+# =============================
+# Flutter & Dart
+# =============================
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/doc/api/
+**/ios/Flutter/.last_build_id
+
+# =============================
+# IDEs & Editor Configs
+# =============================
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+# Android Studio
+/android/app/debug/
+/android/app/profile/
+/android/app/release/
+
+# =============================
+# Desktop Platforms (if unused)
+linux/
+macos/
+windows/
+web/
+
+# =============================
+# Temporary / Cache Files
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+code_backup/
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# =============================
+# Obfuscation / Symbolication
+app.*.symbols
+app.*.map.json
