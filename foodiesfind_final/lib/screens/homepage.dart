@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import '../widgets/typewriter.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F1F1),
+      backgroundColor: const Color(0xFFFFFFFF),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -88,26 +94,33 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
 
-                  // Functional Search Field
+                  // Typewriter Effect Search Bar with Navigation
                   Positioned(
                     bottom: -30,
                     left: 20,
                     right: 20,
-                    child: Material(
-                      elevation: 4,
-                      borderRadius: BorderRadius.circular(16),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Search',
-                          prefixIcon: const Icon(Icons.search),
-                          contentPadding: const EdgeInsets.symmetric(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pushNamed(context, '/restaurants'),
+                      child: Material(
+                        elevation: 4,
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
                             vertical: 14,
                           ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.search, color: Colors.grey),
+                              const SizedBox(width: 10),
+                              TypewriterSearchText(
+                                text: 'Search restaurants, dishes...',
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -120,7 +133,7 @@ class HomePage extends StatelessWidget {
 
               // Padded Content Below
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
                     // Categories
