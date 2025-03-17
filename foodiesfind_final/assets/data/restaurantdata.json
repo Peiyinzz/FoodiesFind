@@ -1,0 +1,28 @@
+[
+    {
+      "id": "restaurant_001",
+      "name": "Sushi Mentai",
+      "imageUrl": "https://example.com/sushi.jpg",
+      "address": "72-1-6&7, Arena Curve, Jalan Mahsuri, 11950 Bayan Lepas, Penang",
+      "distance": "5.2 km",
+      "rating": 4.3,
+      "openingHours": {
+        "Monday": "11:30 AM – 9:30 PM",
+        "Tuesday": "11:30 AM – 9:30 PM",
+        "Wednesday": "11:30 AM – 9:30 PM",
+        "Thursday": "11:30 AM – 9:30 PM",
+        "Friday": "11:30 AM – 9:30 PM",
+        "Saturday": "11:30 AM – 10:00 PM",
+        "Sunday": "11:30 AM – 10:00 PM"
+      },
+      "reviews": [
+        {
+          "userName": "Melissa Peters",
+          "userAvatar": "https://example.com/avatar1.jpg",
+          "date": "2024-12-02",
+          "content": "Delicious food and nice ambiance!"
+        }
+      ]
+    }
+  ]
+  

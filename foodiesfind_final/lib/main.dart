@@ -20,6 +20,8 @@ class MyApp extends StatelessWidget {
       title: 'FoodiesFind',
       debugShowCheckedModeBanner: false,
       theme: appTheme,
+      // ✅ This wraps every screen in SafeArea automatically
+      builder: (context, child) => SafeArea(child: child!),
       home: const HomePage(),
       routes: {'/restaurants': (context) => RestaurantListingPage()},
     );

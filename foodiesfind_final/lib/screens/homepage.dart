@@ -100,6 +100,8 @@ class _HomePageState extends State<HomePage> {
                     left: 20,
                     right: 20,
                     child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+
                       onTap: () => Navigator.pushNamed(context, '/restaurants'),
                       child: Material(
                         elevation: 4,
