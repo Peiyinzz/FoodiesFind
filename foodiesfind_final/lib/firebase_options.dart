@@ -32,13 +32,13 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'your-api-key',
-    authDomain: 'your-auth-domain',
-    projectId: 'your-project-id',
-    storageBucket: 'your-storage-bucket',
-    messagingSenderId: 'your-sender-id',
-    appId: 'your-app-id',
-    measurementId: 'your-measurement-id',
+    apiKey: "AIzaSyA2E0OZSVn_CiqI1j7-HtbOJVq6J1LCRow",
+    authDomain: "foodiesfind-21552.firebaseapp.com",
+    projectId: "foodiesfind-21552",
+    storageBucket: "foodiesfind-21552.firebasestorage.app",
+    messagingSenderId: "57555916564",
+    appId: "1:57555916564:web:17ca98b938c85602145401",
+    measurementId: "G-0EECZ5G0TV",
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

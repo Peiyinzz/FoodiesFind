@@ -43,6 +43,12 @@ dependencies:
   animated_text_kit: ^4.2.2
   google_fonts: ^4.0.4
 
+dependency_overrides:
+  flutter_keyboard_visibility:
+    git:
+      url: https://github.com/Peiyinzz/flutter_keyboard_visibility.git
+      ref: master
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
