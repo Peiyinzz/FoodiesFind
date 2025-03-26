@@ -230,6 +230,9 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                                   onChanged: _onTextChanged,
                                   onSubmitted: _searchPlaces,
                                   decoration: const InputDecoration(
+                                    filled: true,
+                                    fillColor:
+                                        Colors.white, // ensures inside is white
                                     hintText: 'Search places...',
                                     border: InputBorder.none,
                                     icon: Icon(Icons.search),

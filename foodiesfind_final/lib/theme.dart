@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 final ThemeData appTheme = ThemeData(
-  scaffoldBackgroundColor: const Color(0xFFE5E5E5), // Full white background
+  scaffoldBackgroundColor: const Color(0xFFF4F4F4), // Full white background
   // Additional surface controls
-  cardColor: Color(0xFFE5E5E5),
-  canvasColor: Color(0xFFE5E5E5),
+  cardColor: Color(0xFFF4F4F4),
+  canvasColor: Color(0xFFF4F4F4),
   bottomSheetTheme: const BottomSheetThemeData(
-    backgroundColor: Color(0xFFE5E5E5),
+    backgroundColor: Color(0xFFF4F4F4),
   ),
 
   // AppBar (just in case you use one globally)
   appBarTheme: AppBarTheme(
-    backgroundColor: Color(0xFFE5E5E5),
+    backgroundColor: Color(0xFFF4F4F4),
     elevation: 0,
     iconTheme: const IconThemeData(color: Colors.black),
     titleTextStyle: GoogleFonts.raleway(
@@ -50,7 +50,7 @@ final ThemeData appTheme = ThemeData(
   // Input Fields (optional: set fill to white if greyish tone bothers you)
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
-    fillColor: Color(0xFFE5E5E5), // ← changed from grey.shade200 to white
+    fillColor: Color(0xFFF4F4F4), // ← changed from grey.shade200 to white
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide.none,
@@ -60,8 +60,8 @@ final ThemeData appTheme = ThemeData(
 
   // Color Scheme override
   colorScheme: ColorScheme.fromSeed(
-    seedColor: Colors.white,
-    surface: Colors.white,
+    seedColor: Color(0xFFF4F4F4),
+    surface: Color(0xFFF4F4F4),
     brightness: Brightness.light,
-  ).copyWith(primary: Colors.black, secondary: Colors.grey),
+  ).copyWith(primary: Colors.black, secondary: Colors.white),
 );

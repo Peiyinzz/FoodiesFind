@@ -8,22 +8,15 @@ import 'package:flutter/widgets.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-Future<void> main() async {
-  // Initialize the binding so ServicesBinding.instance is available.
-  WidgetsFlutterBinding.ensureInitialized();
-  print('Script started...');
-
-  // 1. Initialize Firebase
-  print('Initializing Firebase...');
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  print('Firebase initialized.');
-
-  // 2. Define your Google Places API parameters
-  final String apiKey = googleApiKey; // Must be enabled for Places
-  final double lat = 5.326; // e.g. your location near Arena Curve
-  final double lng = 100.281;
-  final int radius = 1500; // in meters (1.5 km radius)
-  final String type = 'restaurant';
+// A helper function to fetch and store places for a given type.
+Future<void> fetchAndStore({
+  required String type,
+  required double lat,
+  required double lng,
+  required int radius,
+  required String apiKey,
+}) async {
+  print('\n=== Fetching type="$type" ===');
 
   // Build the Nearby Search URL
   final nearbyUrl =
@@ -34,67 +27,55 @@ Future<void> main() async {
       '&key=$apiKey';
 
   print('Nearby Search URL: $nearbyUrl');
-
-  // 3. Fetch Nearby Restaurants
-  print('Fetching nearby places...');
   final nearbyResponse = await http.get(Uri.parse(nearbyUrl));
   print('Nearby search HTTP status: ${nearbyResponse.statusCode}');
   if (nearbyResponse.statusCode != 200) {
-    print('Failed to fetch nearby places: ${nearbyResponse.statusCode}');
+    print('Failed to fetch nearby places for type=$type');
     return;
   }
 
   final nearbyData = jsonDecode(nearbyResponse.body) as Map<String, dynamic>;
-  // Optional: Check the "status" field from the Places API
   print('Nearby search API status: ${nearbyData['status']}');
 
   final results = (nearbyData['results'] as List?) ?? [];
-  print('Found ${results.length} places nearby.');
+  print('Found ${results.length} places for type=$type.');
 
-  // If zero, you can check logs or lat/lng/radius
-  if (results.isEmpty) {
-    print('No places found. Possibly out of range or invalid parameters.');
-  }
-
-  // 4. For each place, call Place Details to get full info
+  // For each place, call Place Details
   for (final place in results) {
     final placeId = place['place_id'];
     if (placeId == null) {
       print('Skipping a place with no place_id.');
       continue;
     }
-    print('\nFetching details for placeId: $placeId');
 
-    // Build the Details URL
+    print('\nFetching details for placeId: $placeId (type=$type)');
+
+    // Build the Place Details URL
     final detailsUrl =
         'https://maps.googleapis.com/maps/api/place/details/json'
         '?place_id=$placeId'
-        '&fields=name,rating,formatted_address,geometry,formatted_phone_number,opening_hours'
+        '&fields=name,rating,formatted_address,geometry,'
+        'formatted_phone_number,opening_hours,types,reviews'
         '&key=$apiKey';
 
     print('Details URL: $detailsUrl');
     final detailsResponse = await http.get(Uri.parse(detailsUrl));
     print('Details HTTP status: ${detailsResponse.statusCode}');
     if (detailsResponse.statusCode != 200) {
-      print(
-        'Failed to fetch details for $placeId: ${detailsResponse.statusCode}',
-      );
+      print('Failed to fetch details for $placeId');
       continue;
     }
 
     final detailsData =
         jsonDecode(detailsResponse.body) as Map<String, dynamic>;
-    final detailsResult = detailsData['result'] as Map<String, dynamic>?;
-
-    // Optional: Print the "status" from the details response
     print('Place Details API status: ${detailsData['status']}');
-
+    final detailsResult = detailsData['result'] as Map<String, dynamic>?;
     if (detailsResult == null) {
       print('No details found for $placeId');
       continue;
     }
 
-    // 5. Parse the detail fields you need
+    // Parse detail fields
     final name = detailsResult['name'] as String? ?? '';
     final rating = (detailsResult['rating'] as num?)?.toDouble() ?? 0.0;
     final address = detailsResult['formatted_address'] as String? ?? '';
@@ -106,32 +87,48 @@ Future<void> main() async {
     final detailLat = (location?['lat'] as num?)?.toDouble() ?? 0.0;
     final detailLng = (location?['lng'] as num?)?.toDouble() ?? 0.0;
 
-    print(
-      'Parsed details: name=$name, rating=$rating, address=$address, phone=$phone',
-    );
-    print('Coordinates: ($detailLat, $detailLng)');
+    // Parse types as an array
+    final placeTypes =
+        (detailsResult['types'] as List<dynamic>?)
+            ?.map((t) => t.toString())
+            .toList() ??
+        [];
 
-    // opening_hours -> weekday_text
-    final openingHoursMap = <String, String>{};
+    // Build an openingHoursList in Monday->Sunday order
     final oh = detailsResult['opening_hours'] as Map<String, dynamic>?;
     final weekdayText = oh?['weekday_text'] as List?;
+    final openingHoursList = <String>[];
     if (weekdayText != null) {
-      print('Opening hours data found.');
+      final tempMap = <String, String>{};
       for (final line in weekdayText) {
         final text = line as String;
         final parts = text.split(': ');
         if (parts.length == 2) {
-          final day = parts[0].toLowerCase(); // e.g. "monday"
-          final hours = parts[1]; // e.g. "11:30 am – 9:30 pm"
-          openingHoursMap[day] = hours;
+          final day = parts[0].trim();
+          final hours = parts[1].trim();
+          tempMap[day] = hours;
         }
       }
-    } else {
-      print('No opening_hours or weekday_text found.');
+      final dayOrder = [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
+      ];
+      for (final day in dayOrder) {
+        if (tempMap.containsKey(day)) {
+          openingHoursList.add('$day: ${tempMap[day]}');
+        } else {
+          // Optionally mark as closed
+          openingHoursList.add('$day: Closed');
+        }
+      }
     }
 
-    // 6. Write to Firestore
-    print('Writing "$name" to Firestore...');
+    // Write the main doc to Firestore
     final docRef = FirebaseFirestore.instance
         .collection('restaurants')
         .doc(placeId);
@@ -142,12 +139,74 @@ Future<void> main() async {
       'loc': GeoPoint(detailLat, detailLng),
       'rating': rating,
       'phoneNum': phone,
-      'openingHours': openingHoursMap,
+      'openingHours': openingHoursList,
+      'types': placeTypes,
       'lastUpdated': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
 
-    print('Stored "$name" (placeId: $placeId) in Firestore.');
+    // Limit to top 5 reviews
+    final googleReviews = detailsResult['reviews'] as List<dynamic>? ?? [];
+    final top5Reviews = googleReviews.take(5).toList();
+
+    for (final review in top5Reviews) {
+      final authorName = review['author_name'] as String? ?? 'Anonymous';
+      final reviewRating = (review['rating'] as num?)?.toDouble() ?? 0.0;
+      final text = review['text'] as String? ?? '';
+      final timeEpoch = review['time'] as int? ?? 0;
+
+      final reviewDoc = {
+        'authorName': authorName,
+        'rating': reviewRating,
+        'text': text,
+        'timeEpoch': timeEpoch,
+        'source': 'places',
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+
+      // Subcollection: restaurants/{placeId}/reviews
+      await docRef.collection('reviews').add(reviewDoc);
+    }
+
+    print(
+      'Stored "$name" (placeId: $placeId) for type=$type with ${top5Reviews.length} reviews.',
+    );
   }
 
-  print('Done! Script finished.');
+  print('Done fetching type="$type".');
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  print('Script started...');
+
+  // 1. Initialize Firebase
+  print('Initializing Firebase...');
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  print('Firebase initialized.');
+
+  // 2. Common parameters
+  final String apiKey = googleApiKey;
+  final double lat = 5.326;
+  final double lng = 100.281;
+  final int radius = 2000;
+
+  // 3. Query #1: "restaurant"
+  await fetchAndStore(
+    type: 'restaurant',
+    lat: lat,
+    lng: lng,
+    radius: radius,
+    apiKey: apiKey,
+  );
+
+  // 4. Query #2: "cafe"
+  await fetchAndStore(
+    type: 'cafe',
+    lat: lat,
+    lng: lng,
+    radius: radius,
+    apiKey: apiKey,
+  );
+
+  print('All queries done. Script finished!');
 }
