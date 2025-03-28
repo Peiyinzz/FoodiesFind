@@ -1,6 +1,21 @@
+import org.gradle.api.tasks.Copy
+
+// Custom task to copy the debug APK into the project root build folder
+tasks.register<Copy>("copyDebugApkToRootBuild") {
+    dependsOn("assembleDebug") // or "assembleRelease" if you want the release .apk
+    from("$buildDir/outputs/apk/debug/app-debug.apk")
+    into("${rootProject.projectDir}/build/app/outputs/flutter-apk") 
+    // Adjust the path above as you like
+}
+
+// Force the "assembleDebug" task to also run "copyDebugApkToRootBuild"
+tasks.findByName("assembleDebug")?.finalizedBy("copyDebugApkToRootBuild")
+
+
+
 plugins {
     id("com.android.application")
-    id("kotlin-android")
+    kotlin("android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
@@ -32,11 +47,20 @@ android {
     }
 
     buildTypes {
-        release {
+        
+        getByName("debug") {
+            // Optional: debug-specific configurations
+        }
+        getByName("release") {
+            isMinifyEnabled = false // or your desired release settings
+            isShrinkResources = false
+        }
+
+        //release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
-        }
+            //signingConfig = signingConfigs.getByName("debug")
+        //}
     }
 }
 
