@@ -274,7 +274,10 @@ class _FoodCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        leading: Image.network(image, width: 60, height: 60, fit: BoxFit.cover),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(image, width: 60, height: 60, fit: BoxFit.cover),
+        ),
         title: Text(title),
         subtitle: Text(subtitle),
         trailing: Column(

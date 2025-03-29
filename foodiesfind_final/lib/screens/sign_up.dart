@@ -45,35 +45,36 @@ class _SignUpPageState extends State<SignUpPage> {
 
     setState(() => _isLoading = true);
 
+    print('Entered _handleSignUp');
     try {
-      // Create user in Firebase Authentication
+      print('Entered try block...');
       final credential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
+      print('After createUserWithEmailAndPassword...');
 
       final user = credential.user;
-      if (user != null) {
-        // Update display name with the username
-        await user.updateDisplayName(username);
+      print('User from credential: $user');
 
-        // Write additional user info to Firestore under "users" collection
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-          'uid': user.uid,
-          'username': username,
-          'email': user.email,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-
-        // Print debug message
-        print('Signed up as: ${user.email}');
-
-        // Navigate to your homepage after sign up
-        Navigator.pushReplacementNamed(context, '/home');
+      if (user == null) {
+        print('User is null! Exiting...');
+        return;
       }
+
+      print('User is non-null, email: ${user.email}');
+      // If you still want to update display name:
+      // await user.updateDisplayName(username);
+
+      print('Navigating to /home...');
+      Navigator.pushReplacementNamed(context, '/home');
+      print('End of try block');
     } on FirebaseAuthException catch (e) {
+      print('FirebaseAuthException: $e');
       _showError(e.message ?? 'Sign-up failed');
     } catch (e) {
+      print('Generic exception: $e');
       _showError(e.toString());
     } finally {
+      print('In finally block, setting _isLoading = false');
       setState(() => _isLoading = false);
     }
   }
