@@ -18,10 +18,7 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           // Top spacer for status bar
-          Container(
-            height: 30,
-            color: const Color(0xFF0E2223), // Match top background
-          ),
+          Container(height: 30, color: const Color(0xFF0E2223)),
           // Main content
           Expanded(
             child: SingleChildScrollView(
@@ -47,40 +44,32 @@ class _HomePageState extends State<HomePage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Current Location',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/userprofile',
+                                    );
+                                  },
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 24,
+                                        backgroundImage: AssetImage(
+                                          'assets/foodiesfind_plainlogo.png',
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 6,
+                                      const SizedBox(width: 12),
+                                      const Text(
+                                        'Hello, Username!',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: const [
-                                          Icon(
-                                            Icons.location_on,
-                                            color: Color(0xFFFBAF25),
-                                            size: 16,
-                                          ),
-                                          SizedBox(width: 5),
-                                          Text('Bayan Baru'),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                                 const Icon(
                                   Icons.notifications_none,
@@ -91,7 +80,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             const SizedBox(height: 30),
                             const Text(
-                              'Looking For\nSomething New?\nGot It!',
+                              'Looking for something new?',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 26,
