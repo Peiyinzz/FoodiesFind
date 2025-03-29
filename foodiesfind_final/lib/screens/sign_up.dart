@@ -98,7 +98,7 @@ class _SignUpPageState extends State<SignUpPage> {
               // App logo (centered)
               Center(
                 child: Image.asset(
-                  'assets/images/foodiesfind_logo.png',
+                  'assets/images/foodiesfind_plainlogo.png',
                   width: 160,
                   height: 120,
                   fit: BoxFit.cover,
@@ -177,7 +177,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/login');
                     },
                     child: const Text(
                       'Log In',

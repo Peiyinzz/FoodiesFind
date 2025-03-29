@@ -41,6 +41,7 @@ dependencies:
   cloud_firestore: ^5.2.1
   firebase_auth: ^5.1.4
   google_sign_in: ^6.2.2
+  firebase_auth_platform_interface: ^7.0.0
   cupertino_icons: ^1.0.8
   animated_text_kit: ^4.2.2
   google_fonts: ^4.0.4
@@ -74,7 +75,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/images/
     - assets/images/food1.jpg
-    - assets/images/foodiesfind_logo.png
     - assets/images/Mews-cafe-food-pic-2020.jpg
     - assets/images/google_logo.png

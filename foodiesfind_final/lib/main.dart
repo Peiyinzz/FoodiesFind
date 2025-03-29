@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:foodiesfind_final/screens/sign_up.dart';
+import 'package:foodiesfind_final/screens/sign_in.dart';
 import 'screens/homepage.dart';
 import 'screens/restaurantlist.dart';
 import 'theme.dart';
@@ -58,6 +59,8 @@ class MyApp extends StatelessWidget {
       home: const SignUpPage(),
       // The "routes" property is a map of named routes that can be navigated to in your app.
       routes: {
+        '/signup': (context) => const SignUpPage(),
+        '/login': (context) => const SignInPage(),
         '/home': (context) => const HomePage(),
         '/restaurants': (context) => RestaurantListingPage(),
         // Add other routes as needed.
