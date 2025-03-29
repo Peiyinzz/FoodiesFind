@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+
 import 'package:foodiesfind_final/screens/sign_up.dart';
 import 'package:foodiesfind_final/screens/sign_in.dart';
+import 'package:foodiesfind_final/screens/user_profile.dart';
 import 'screens/homepage.dart';
 import 'screens/restaurantlist.dart';
 import 'theme.dart';
@@ -12,14 +14,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    // Only initialize if no default app exists.
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
     }
   } catch (e) {
-    // If it's a duplicate-app error, log and continue.
     if (e.toString().contains("already exists")) {
       debugPrint(
         "Firebase already initialized. Skipping duplicate initialization.",
@@ -29,18 +29,7 @@ void main() async {
     }
   }
 
-  // Set system UI overlay for fullscreen (edge-to-edge)
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      // You can adjust these if needed.
-      // statusBarColor: Colors.transparent,
-      // statusBarIconBrightness: Brightness.light,
-      // systemNavigationBarColor: Colors.white,
-      // systemNavigationBarIconBrightness: Brightness.dark,
-    ),
-  );
-
-  // Enable edge-to-edge layout
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle());
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   runApp(const MyApp());
@@ -55,15 +44,45 @@ class MyApp extends StatelessWidget {
       title: 'FoodiesFind',
       debugShowCheckedModeBanner: false,
       theme: appTheme,
-      // Set the home page to SignUpPage so it loads at startup.
       home: const SignUpPage(),
-      // The "routes" property is a map of named routes that can be navigated to in your app.
-      routes: {
-        '/signup': (context) => const SignUpPage(),
-        '/login': (context) => const SignInPage(),
-        '/home': (context) => const HomePage(),
-        '/restaurants': (context) => RestaurantListingPage(),
-        // Add other routes as needed.
+
+      // ✅ Dynamic route generation with argument support
+      onGenerateRoute: (settings) {
+        if (settings.name == '/userprofile') {
+          final args = settings.arguments;
+
+          if (args != null && args is Map<String, String>) {
+            return MaterialPageRoute(
+              builder:
+                  (_) => UserProfilePage(
+                    initialUsername: args['username'] ?? '',
+                    email: args['email'] ?? '',
+                  ),
+            );
+          } else {
+            return MaterialPageRoute(
+              builder:
+                  (_) => const UserProfilePage(initialUsername: '', email: ''),
+            );
+          }
+        }
+
+        // Static fallback routes
+        switch (settings.name) {
+          case '/signup':
+            return MaterialPageRoute(builder: (_) => const SignUpPage());
+          case '/login':
+            return MaterialPageRoute(builder: (_) => const SignInPage());
+          case '/home':
+            return MaterialPageRoute(builder: (_) => const HomePage());
+          case '/restaurants':
+            return MaterialPageRoute(builder: (_) => RestaurantListingPage());
+        }
+
+        // Unknown route fallback
+        return MaterialPageRoute(
+          builder: (_) => Scaffold(body: Center(child: Text('Page not found'))),
+        );
       },
     );
   }

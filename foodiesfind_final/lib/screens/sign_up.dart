@@ -18,14 +18,12 @@ class _SignUpPageState extends State<SignUpPage> {
 
   bool _isLoading = false; // For showing a loading spinner if needed
 
-  // Handle Sign Up and store additional user data in Firestore
   Future<void> _handleSignUp() async {
     final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final confirm = _confirmPasswordController.text.trim();
 
-    // Basic validations
     if (username.isEmpty) {
       _showError('Please enter a username');
       return;
@@ -61,11 +59,14 @@ class _SignUpPageState extends State<SignUpPage> {
       }
 
       print('User is non-null, email: ${user.email}');
-      // If you still want to update display name:
-      // await user.updateDisplayName(username);
 
-      print('Navigating to /home...');
-      Navigator.pushReplacementNamed(context, '/home');
+      // Navigate to profile completion page instead of home
+      Navigator.pushReplacementNamed(
+        context,
+        '/userprofile',
+        arguments: {'username': username, 'email': email},
+      );
+
       print('End of try block');
     } on FirebaseAuthException catch (e) {
       print('FirebaseAuthException: $e');

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../widgets/typewriter.dart';
 import 'near_me.dart';
@@ -10,270 +12,226 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String? username;
+  String? profileImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      final doc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      setState(() {
+        username = doc['username'];
+        profileImageUrl = doc['profileImageUrl'];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: false,
-      backgroundColor: Color(0xFFFFFFFF),
-      body: Column(
-        children: [
-          // Top spacer for status bar
-          Container(height: 30, color: const Color(0xFF0E2223)),
-          // Main content
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
+      backgroundColor: const Color(0xFF0E2223),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Profile Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // HEADER SECTION
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Container(
-                        width: MediaQuery.of(context).size.width,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF0E2223),
-                          borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(40),
-                            bottomRight: Radius.circular(40),
-                          ),
-                        ),
-                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      '/userprofile',
-                                    );
-                                  },
-                                  child: Row(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 24,
-                                        backgroundImage: AssetImage(
-                                          'assets/foodiesfind_plainlogo.png',
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      const Text(
-                                        'Hello, Username!',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const Icon(
-                                  Icons.notifications_none,
-                                  size: 30,
-                                  color: Colors.white,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 30),
-                            const Text(
-                              'Looking for something new?',
-                              style: TextStyle(
+                  GestureDetector(
+                    onTap: () => Navigator.pushNamed(context, '/userprofile'),
+                    child: CircleAvatar(
+                      radius: 28,
+                      backgroundColor: Colors.grey.shade300,
+                      backgroundImage:
+                          profileImageUrl != null && profileImageUrl!.isNotEmpty
+                              ? NetworkImage(profileImageUrl!)
+                              : null,
+                      child:
+                          profileImageUrl == null || profileImageUrl!.isEmpty
+                              ? const Icon(
+                                Icons.person,
                                 color: Colors.white,
-                                fontSize: 26,
-                                fontWeight: FontWeight.bold,
-                                height: 1.3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Positioned(
-                        bottom: -30,
-                        left: 20,
-                        right: 20,
+                                size: 30,
+                              )
+                              : null,
+                    ),
+                  ),
+                  Row(
+                    children: const [
+                      Icon(Icons.search, color: Colors.white, size: 28),
+                      SizedBox(width: 16),
+                      Icon(Icons.map_outlined, color: Colors.white, size: 28),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Greeting
+              Text(
+                'Hello, ${username ?? "Username"}!',
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Wanna eat tonight?',
+                style: TextStyle(fontSize: 16, color: Colors.white70),
+              ),
+              const SizedBox(height: 24),
+
+              // Search Bar
+              GestureDetector(
+                onTap: () => Navigator.pushNamed(context, '/restaurants'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search, color: Colors.grey),
+                      const SizedBox(width: 10),
+                      Expanded(
                         child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
                           onTap:
                               () =>
                                   Navigator.pushNamed(context, '/restaurants'),
-                          child: Material(
-                            elevation: 4,
-                            borderRadius: BorderRadius.circular(16),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 14,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.search, color: Colors.grey),
-                                  const SizedBox(width: 10),
-                                  TypewriterSearchText(
-                                    text: 'Search restaurants, dishes...',
-                                  ),
-                                ],
-                              ),
-                            ),
+                          child: TypewriterSearchText(
+                            text: 'Search restaurants, dishes...',
                           ),
                         ),
                       ),
                     ],
                   ),
+                ),
+              ),
+              const SizedBox(height: 30),
 
-                  const SizedBox(height: 60),
-
-                  // CONTENT BELOW
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _CategoryIcon(
-                              icon: Icons.location_pin,
-                              label: 'Near Me',
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const NearbyMapScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _CategoryIcon(
-                              icon: Icons.restaurant_menu,
-                              label: 'Dishes',
-                            ),
-                            _CategoryIcon(
-                              icon: Icons.storefront,
-                              label: 'Restaurants',
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 30),
-                        const _SectionHeader(title: 'Special Offers'),
-                        const _FoodCard(
-                          image: 'https://via.placeholder.com/80',
-                          title: 'Burger King',
-                          subtitle: '3.7 km away',
-                          rating: 4.5,
-                        ),
-                        const SizedBox(height: 20),
-                        const _SectionHeader(title: 'Restaurants'),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: const [
-                              _HorizontalFoodCard(
-                                image: 'https://via.placeholder.com/120',
-                                title: 'Seafood maki sushi',
-                                rating: 4.5,
-                              ),
-                              _HorizontalFoodCard(
-                                image: 'https://via.placeholder.com/120',
-                                title: 'Shrimp Pasta',
-                                rating: 4.3,
-                              ),
-                            ],
+              // Categories Grid
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _CategoryCard(
+                    title: 'Sushi',
+                    subtitle: '25+ Restaurants',
+                    icon: Icons.set_meal,
+                  ),
+                  _CategoryCard(
+                    title: 'Burgers',
+                    subtitle: '10+ Restaurants',
+                    icon: Icons.lunch_dining,
+                  ),
+                  _CategoryCard(
+                    title: 'See All Categories',
+                    subtitle: '100+ Categories',
+                    icon: Icons.fastfood,
+                  ),
+                  _CategoryCard(
+                    title: 'Near Me',
+                    subtitle: 'Based on Location',
+                    icon: Icons.location_pin,
+                    onTap:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const NearbyMapScreen(),
                           ),
                         ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
                   ),
                 ],
               ),
-            ),
+
+              const SizedBox(height: 30),
+              const Text(
+                'RECOMMENDED',
+                style: TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 16),
+
+              _RecommendedItem(
+                imageUrl: 'https://via.placeholder.com/80',
+                title: 'Get some pizza!',
+                subtitle: 'Pizza  •  10% off',
+                tag: 'PIZZA HUT',
+              ),
+              const SizedBox(height: 12),
+              _RecommendedItem(
+                imageUrl: 'https://via.placeholder.com/80',
+                title: 'Best Deals Today!',
+                subtitle: 'Limited Time Offers',
+                tag: 'BURGER KING',
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _CategoryIcon extends StatelessWidget {
+class _CategoryCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
   final IconData icon;
-  final String label;
   final VoidCallback? onTap;
 
-  const _CategoryIcon({required this.icon, required this.label, this.onTap});
+  const _CategoryCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: Colors.green.shade100,
-            child: Icon(icon, color: Colors.green, size: 28),
-          ),
-          const SizedBox(height: 6),
-          Text(label),
-        ],
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-}
-
-class _FoodCard extends StatelessWidget {
-  final String image;
-  final String title;
-  final String subtitle;
-  final double rating;
-
-  const _FoodCard({
-    required this.image,
-    required this.title,
-    required this.subtitle,
-    required this.rating,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.network(image, width: 60, height: 60, fit: BoxFit.cover),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1B3A3B),
+          borderRadius: BorderRadius.circular(20),
         ),
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.star, color: Colors.orange, size: 20),
-            Text(rating.toString()),
+            CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Icon(icon, color: Colors.teal.shade700),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(subtitle, style: const TextStyle(color: Colors.white60)),
           ],
         ),
       ),
@@ -281,44 +239,50 @@ class _FoodCard extends StatelessWidget {
   }
 }
 
-class _HorizontalFoodCard extends StatelessWidget {
-  final String image;
+class _RecommendedItem extends StatelessWidget {
+  final String imageUrl;
   final String title;
-  final double rating;
+  final String subtitle;
+  final String tag;
 
-  const _HorizontalFoodCard({
-    required this.image,
+  const _RecommendedItem({
+    required this.imageUrl,
     required this.title,
-    required this.rating,
+    required this.subtitle,
+    required this.tag,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 140,
-      margin: const EdgeInsets.only(right: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              image,
-              height: 100,
-              width: 140,
-              fit: BoxFit.cover,
-            ),
+    return Row(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.network(
+            imageUrl,
+            width: 60,
+            height: 60,
+            fit: BoxFit.cover,
           ),
-          const SizedBox(height: 8),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-          Row(
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.star, color: Colors.orange, size: 16),
-              Text(rating.toString()),
+              Text(
+                tag.toUpperCase(),
+                style: const TextStyle(color: Colors.orange, fontSize: 12),
+              ),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                subtitle,
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
