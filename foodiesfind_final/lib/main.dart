@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'package:foodiesfind_final/screens/sign_up.dart';
 import 'package:foodiesfind_final/screens/sign_in.dart';
 import 'package:foodiesfind_final/screens/user_profile.dart';
+import 'package:foodiesfind_final/screens/review_form.dart';
 import 'screens/homepage.dart';
 import 'screens/restaurantlist.dart';
 import 'theme.dart';
@@ -77,6 +78,10 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(builder: (_) => const HomePage());
           case '/restaurants':
             return MaterialPageRoute(builder: (_) => RestaurantListingPage());
+          case '/reviewform':
+            return MaterialPageRoute(
+              builder: (_) => const ReviewFormPage(restaurantId: ''),
+            );
         }
 
         // Unknown route fallback

@@ -36,6 +36,7 @@ dependencies:
   flutter_typeahead: ^5.2.0
   permission_handler: ^11.0.0
   plugin_platform_interface: ^2.1.5
+  flutter_rating_bar: ^4.0.0
 
   flutter:
     sdk: flutter
