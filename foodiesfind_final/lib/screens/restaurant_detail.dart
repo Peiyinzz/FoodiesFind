@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RestaurantDetailPage extends StatelessWidget {
-  final String restaurantId; // Firestore doc ID (placeId)
+  final String restaurantId;
   const RestaurantDetailPage({Key? key, required this.restaurantId})
     : super(key: key);
 
@@ -16,144 +16,172 @@ class RestaurantDetailPage extends StatelessWidget {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      body: FutureBuilder<DocumentSnapshot>(
-        future:
-            FirebaseFirestore.instance
-                .collection('restaurants')
-                .doc(restaurantId)
-                .get(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(
-              child: Text('Error loading restaurant details.'),
-            );
-          }
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Stack(
+        children: [
+          FutureBuilder<DocumentSnapshot>(
+            future:
+                FirebaseFirestore.instance
+                    .collection('restaurants')
+                    .doc(restaurantId)
+                    .get(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return const Center(
+                  child: Text('Error loading restaurant details.'),
+                );
+              }
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          final doc = snapshot.data!;
-          if (!doc.exists) {
-            return const Center(child: Text('Restaurant not found.'));
-          }
+              final doc = snapshot.data!;
+              if (!doc.exists) {
+                return const Center(child: Text('Restaurant not found.'));
+              }
 
-          // Convert doc to a Map
-          final data = doc.data() as Map<String, dynamic>;
+              final data = doc.data() as Map<String, dynamic>;
+              final name = data['name'] ?? 'Unnamed';
+              final rating = data['rating']?.toString() ?? '-';
+              final address = data['address'] ?? '';
+              final phone = data['phoneNum'] ?? '';
+              final openingHours = data['openingHours'] as List<dynamic>? ?? [];
+              final types = data['types'] as List<dynamic>? ?? [];
 
-          // Extract fields
-          final name = data['name'] ?? 'Unnamed';
-          final rating = data['rating']?.toString() ?? '-';
-          final address = data['address'] ?? '';
-          final phone = data['phoneNum'] ?? '';
-          final openingHours = data['openingHours'] as List<dynamic>? ?? [];
-          final types = data['types'] as List<dynamic>? ?? [];
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Placeholder image at the top
-                Image.asset(
-                  'assets/images/Mews-cafe-food-pic-2020.jpg',
-                  width: double.infinity,
-                  height: 200,
-                  fit: BoxFit.cover,
-                ),
-                const SizedBox(height: 8),
-
-                // Restaurant name
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-
-                // Rating
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
+              return Padding(
+                padding: const EdgeInsets.only(
+                  bottom: 70,
+                ), // Leave space for button
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.star, color: Colors.orange, size: 20),
-                      const SizedBox(width: 4),
-                      Text(rating),
+                      Image.asset(
+                        'assets/images/Mews-cafe-food-pic-2020.jpg',
+                        width: double.infinity,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              color: Colors.orange,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(rating),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (address.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(address),
+                        ),
+                      const SizedBox(height: 8),
+                      if (phone.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text('Phone: $phone'),
+                        ),
+                      if (types.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: Text('Types: ${types.join(', ')}'),
+                        ),
+                      const Divider(height: 24),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'Opening Hours',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      for (final dayLine in openingHours) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 2,
+                          ),
+                          child: Text(dayLine.toString()),
+                        ),
+                      ],
+                      const Divider(height: 24),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'Reviews',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      ReviewsList(restaurantId: restaurantId),
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
+              );
+            },
+          ),
 
-                // Address
-                if (address.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(address),
-                  ),
-                const SizedBox(height: 8),
-
-                // Phone
-                if (phone.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('Phone: $phone'),
-                  ),
-
-                // Types
-                if (types.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Text('Types: ${types.join(', ')}'),
-                  ),
-
-                const Divider(height: 24),
-
-                // Opening Hours
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: const Text(
-                    'Opening Hours',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+          // Fixed Button
+          Positioned(
+            left: 80,
+            right: 80,
+            bottom: 16,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  '/reviewform',
+                  arguments: {'restaurantId': restaurantId},
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFC8E0CA),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 26,
+                  vertical: 14,
                 ),
-                for (final dayLine in openingHours) ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 2,
-                    ),
-                    child: Text(dayLine.toString()),
-                  ),
-                ],
-
-                const Divider(height: 24),
-
-                // Reviews section
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: const Text(
-                    'Reviews',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(60),
                 ),
-                ReviewsList(restaurantId: restaurantId),
-              ],
+              ),
+              child: const Text(
+                'Write a Review',
+                style: TextStyle(fontSize: 16, color: Colors.black),
+              ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 }
 
-// Separate widget for the reviews subcollection
 class ReviewsList extends StatelessWidget {
   final String restaurantId;
   const ReviewsList({Key? key, required this.restaurantId}) : super(key: key);
@@ -191,7 +219,6 @@ class ReviewsList extends StatelessWidget {
         }
 
         return ListView.builder(
-          // Important: shrinkWrap + no scroll physics to embed in SingleChildScrollView
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: docs.length,
