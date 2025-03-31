@@ -34,6 +34,8 @@ dependencies:
   google_maps_webservice: ^0.0.20-nullsafety.5
   geocoding: ^3.0.0
   flutter_typeahead: ^5.2.0
+  permission_handler: ^11.0.0
+  plugin_platform_interface: ^2.1.5
 
   flutter:
     sdk: flutter
