@@ -135,7 +135,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                       }).toList(),
                 ),
                 const SizedBox(height: 8),
-                const Text('Did you spot these ingredients?'),
+                const Text('Ingredients:'),
                 Wrap(
                   children:
                       ingredientOptions.map((i) {
@@ -150,7 +150,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                       }).toList(),
                 ),
                 const SizedBox(height: 8),
-                const Text('Was it:'),
+                const Text('Dietary:'),
                 Wrap(
                   children:
                       dietaryOptions.map((d) {
@@ -195,10 +195,10 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                 // TODO: Handle form submission
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFC8E0CA),
-                foregroundColor: Colors.black,
+                backgroundColor: Colors.white,
+                side: const BorderSide(color: Color(0xFF145858)),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(60),
                 ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,

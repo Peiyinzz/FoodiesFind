@@ -1,0 +1,387 @@
+[
+    {
+      "category": "Soup",
+      "name": "Tangy Tomato",
+      "description": "Pomodoro, Garlic, Onion, Cream, Served with Signature Cheese Sandwich",
+      "price": 12.9,
+      "tags": []
+    },
+    {
+      "category": "Soup",
+      "name": "Truffle Mushroom",
+      "description": "Seasonal Mushroom, Onion, Cream, White Truffle Oil, Served with Signature Cheese Sandwich",
+      "price": 12.9,
+      "tags": []
+    },
+    {
+      "category": "Salad",
+      "name": "Anchovies Caesar",
+      "description": "Romaine, Crouton, Bacons, Anchovies Caesar Dressing, Grated Parmesan",
+      "price": 12.9,
+      "tags": []
+    },
+    {
+      "category": "Salad",
+      "name": "Berries Rojak",
+      "description": "Strawberry, Blueberry, Walnut, You Tiao, Rojak Mayo Dressing, Sesame Seed, Greens",
+      "price": 12.9,
+      "tags": []
+    },
+    {
+      "category": "All-Day Brunch",
+      "name": "Croque Madame",
+      "description": "French Toast, Chicken Ham, Bacon, Cheddar Cheese, Sunny Side Up, Greens",
+      "price": 22.9,
+      "tags": []
+    },
+    {
+      "category": "All-Day Brunch",
+      "name": "CLTA Wrap",
+      "description": "Sous Vide Chicken Breast, Lettuce, Tomato, Avocado, Tortilla, Sesame Yuzu Dressing, Shoestring Fries",
+      "price": 22.9,
+      "tags": []
+    },
+    {
+      "category": "All-Day Brunch",
+      "name": "Curried Shakshuka",
+      "description": "Minced Pork, Chicken Onion Sausage, Onsen Egg, Japanese Tomato Curry, Grated Parmesan, Pain Au Lait",
+      "price": 22.9,
+      "tags": []
+    },
+    {
+      "category": "All-Day Brunch",
+      "name": "Classic Breakfast",
+      "description": "Scrambled Egg, Chicken Onion Sausage, Bacon, Tater Tots, Portobello, Pain Au Lait, Greens",
+      "price": 22.9,
+      "tags": []
+    },
+    {
+      "category": "Spaghettini",
+      "name": "Aglio E Olio",
+      "description": "Garlic, Olive Oil, Red Chili, White Truffle Oil",
+      "price": 18.9,
+      "tags": []
+    },
+    {
+      "category": "Spaghettini",
+      "name": "Alfredo Mushroom",
+      "description": "Seasonal Mushroom, Cèpes Powder, Garlic, Cream, White Truffle Oil, Grated Parmesan",
+      "price": 18.9,
+      "tags": []
+    },
+    {
+      "category": "Spaghettini",
+      "name": "Pesto",
+      "description": "Sweet Basil, Nuts, Garlic, Grated Parmesan",
+      "price": 18.9,
+      "tags": []
+    },
+    {
+      "category": "Spaghettini",
+      "name": "Bacon Carbonara",
+      "description": "Bacon, Cream, Grated Parmesan, Egg Yolk (mixed with sauce)",
+      "price": 18.9,
+      "tags": []
+    },
+    {
+      "category": "Spaghettini",
+      "name": "Curry Roast Pork",
+      "description": "Roast Pork, Curry Cream, Onion, Curry Leaves",
+      "price": 18.9,
+      "tags": []
+    },
+    {
+      "category": "Spaghettini",
+      "name": "Tom Yum-Ko",
+      "description": "Hotate Scallop, Minced Shrimp, Onion, Tom Yum Cream, Ginger Flower, Tobiko",
+      "price": 18.9,
+      "tags": []
+    },
+    {
+      "category": "Donburi",
+      "name": "Hainanese Chicken Katsu",
+      "description": "Breaded Chicken Chop, Onion Tamago, Hainanese Gravy, Japanese Rice",
+      "price": 17.9,
+      "tags": []
+    },
+    {
+      "category": "Donburi",
+      "name": "Nasi Kandar",
+      "description": "Lamb Shoulder Skewer, Okra, Onsen Egg, Curry Banjir, Japanese Rice",
+      "price": 17.9,
+      "tags": []
+    },
+    {
+      "category": "Donburi",
+      "name": "Hambāgu Rice",
+      "description": "Homemade Pork Patty, Onion Tamago, Broccoli, Gravy, Japanese Rice",
+      "price": 17.9,
+      "tags": []
+    },
+    {
+      "category": "Donburi",
+      "name": "Sam Rot Siakap",
+      "description": "This item contains alcohol. Beer Battered Barramundi, Onion Tamago, Thai Three-Flavor Sauce, French Bean, Japanese Rice",
+      "price": 17.9,
+      "tags": []
+    },
+    {
+      "category": "Donburi",
+      "name": "Unagi Tendon",
+      "description": "Unagi Tempura, Okra, Carrot, Onsen Egg, Japanese Rice",
+      "price": 17.9,
+      "tags": []
+    },
+    {
+      "category": "Donburi",
+      "name": "Salmon Nanban",
+      "description": "Norwegian Salmon, Onsen Egg, Furikake, Tartare Sauce, Tobiko, Japanese Rice",
+      "price": 17.9,
+      "tags": []
+    },
+    {
+      "category": "Mains",
+      "name": "Seafood Stew",
+      "description": "Tiger Prawn, Clams, Squid, Hotate Scallop, Pomodoro, White Wine, White Truffle Oil",
+      "price": 23.9,
+      "tags": []
+    },
+    {
+      "category": "Mains",
+      "name": "Halibut & Chips",
+      "description": "This item contains alcohol. Beer Battered Halibut, Shoestring Fries, Greens, Capers Tartare Sauce",
+      "price": 23.9,
+      "tags": []
+    },
+    {
+      "category": "Mains",
+      "name": "Gochujang Parmigiana",
+      "description": "Bread Crumbs Chicken Chop, Gochujang Sauce, Mozzarella Cheese, Shoestring Fries, Greens",
+      "price": 23.9,
+      "tags": []
+    },
+    {
+      "category": "Mains",
+      "name": "Guinness Pork Belly",
+      "description": "Braised Pork Belly, Sweet Potato Mash, Guinness, Cherry Tomato, Broccoli, Onion",
+      "price": 23.9,
+      "tags": []
+    },
+    {
+      "category": "Taco",
+      "name": "Satay Chicken Taco",
+      "description": "Grilled Chicken, Ginger Flower, Satay Sauce, Tomato Salsa, Lettuce, Cilantro, Lime",
+      "price": 18.9,
+      "tags": []
+    },
+    {
+      "category": "Taco",
+      "name": "Wasabi Prawn Taco",
+      "description": "Crispy Prawn, Tobiko, Honey Wasabi Mayo, Tomato Salsa, Lettuce, Cilantro, Lime",
+      "price": 18.9,
+      "tags": []
+    },
+    {
+      "category": "Taco",
+      "name": "Sambal Roast Pork Taco",
+      "description": "Roast Pork, Onion, Homemade Sambal, Tomato Salsa, Lettuce, Cilantro, Lime",
+      "price": 18.9,
+      "tags": []
+    },
+    {
+      "category": "Taco",
+      "name": "Unagi Tempura Taco",
+      "description": "Crispy Nori Unagi, Katsuobushi, Kabayaki Sauce, Tomato Salsa, Lettuce, Cilantro, Lime",
+      "price": 18.9,
+      "tags": []
+    },
+    {
+      "category": "Taco",
+      "name": "Crispy Portobello Taco",
+      "description": "This item contains alcohol. Beer Battered Portobello, Anchovies Mayo, Tomato Salsa, Lettuce, Cilantro, Lime",
+      "price": 18.9,
+      "tags": []
+    },
+    {
+      "category": "Sharing",
+      "name": "Tater Tots",
+      "description": "Mini Hash Browns, Creamy Spices Sauce",
+      "price": 28,
+      "tags": []
+    },
+    {
+      "category": "Sharing",
+      "name": "Truffle Fries",
+      "description": "Shoestring Fries, White Truffle Oil, Grated Parmesan",
+      "price": 28,
+      "tags": []
+    },
+    {
+      "category": "Sharing",
+      "name": "Gai Chi Pong",
+      "description": "6 pcs Drumette & Wingette, Curry Leaves, Homemade Sambal",
+      "price": 28,
+      "tags": []
+    },
+    {
+      "category": "Sharing",
+      "name": "Mala Fries",
+      "description": "Shoestring Fries, Mala Spices, Mala Mayo",
+      "price": 28,
+      "tags": []
+    },
+    {
+      "category": "Sharing",
+      "name": "Yuk Suk Suk",
+      "description": "Corn Ribs, Shichimi Togarashi, Grated Parmesan, Lime",
+      "price": 28,
+      "tags": []
+    },
+    {
+      "category": "Specialty Coffee",
+      "name": "Black",
+      "description": "Ristretto, H₂O",
+      "price": 9.9,
+      "tags": []
+    },
+    {
+      "category": "Specialty Coffee",
+      "name": "Honey Espresso Tonic",
+      "description": "Ristretto, Honey, Tonic Water",
+      "price": 9.9,
+      "tags": []
+    },
+    {
+      "category": "Specialty Coffee",
+      "name": "White",
+      "description": "Ristretto, Fresh Milk",
+      "price": 9.9,
+      "tags": []
+    },
+    {
+      "category": "Specialty Coffee",
+      "name": "Mocha",
+      "description": "Ristretto, Pure Cocoa, Fresh Milk",
+      "price": 9.9,
+      "tags": []
+    },
+    {
+      "category": "Specialty Coffee",
+      "name": "Cappuchai",
+      "description": "Ristretto, Fresh Milk, Chai Tea Spices, Cinnamon Powder",
+      "price": 9.9,
+      "tags": []
+    },
+    {
+      "category": "Classic",
+      "name": "Aloe Honey Lemon",
+      "description": "Lemon Juice, Honey Water, Aloe Vera",
+      "price": 8.9,
+      "tags": []
+    },
+    {
+      "category": "Classic",
+      "name": "Purple Sweet Potato Latte",
+      "description": "Chunky Purple Potato, Fresh Milk",
+      "price": 8.9,
+      "tags": []
+    },
+    {
+      "category": "Classic",
+      "name": "Australian Beetroot Latte",
+      "description": "Australia Organic Beetroot, Fresh Milk",
+      "price": 8.9,
+      "tags": []
+    },
+    {
+      "category": "Classic",
+      "name": "Cacao Barry Cocoa",
+      "description": "100% Pure Cocoa, Fresh Milk",
+      "price": 8.9,
+      "tags": []
+    },
+    {
+      "category": "Classic",
+      "name": "Niko Neko Houjicha Latte",
+      "description": "Niko Neko Tsubaki Houjicha, Fresh Milk",
+      "price": 8.9,
+      "tags": []
+    },
+    {
+      "category": "Classic",
+      "name": "Niko Neko Matcha Latte",
+      "description": "Niko Neko Uji Matcha, Fresh Milk",
+      "price": 8.9,
+      "tags": []
+    },
+    {
+      "category": "Fusion Inspired",
+      "name": "Grapefruit Yakult",
+      "description": "Fresh Grapefruit, Grapefruit Chunk, Yakult",
+      "price": 11.9,
+      "tags": []
+    },
+    {
+      "category": "Fusion Inspired",
+      "name": "Matcha Honey Lemon",
+      "description": "Uji Matcha, Honey, Lemon Juice, Tonic Water",
+      "price": 11.9,
+      "tags": []
+    },
+    {
+      "category": "Fusion Inspired",
+      "name": "Kiam Sui Ti",
+      "description": "Aloe Vera, Pomegranate, Orange Juice, Sea Salt Cream",
+      "price": 11.9,
+      "tags": []
+    },
+    {
+      "category": "Dalgona Series",
+      "name": "Dalgona Cocoa",
+      "description": "Chocolate, Dalgona Cream, Fresh Milk, Self-Made Honeycomb",
+      "price": 11.9,
+      "tags": []
+    },
+    {
+      "category": "Dalgona Series",
+      "name": "Dalgona Matcha",
+      "description": "Uji Matcha, Dalgona Cream, Fresh Milk, Self-Made Honeycomb",
+      "price": 11.9,
+      "tags": []
+    },
+    {
+      "category": "Dalgona Series",
+      "name": "Dalgona Coffee",
+      "description": "Ristretto, Dalgona Cream, Fresh Milk, Self-Made Honeycomb",
+      "price": 11.9,
+      "tags": []
+    },
+    {
+      "category": "Burger",
+      "name": "Mala Pork Burger",
+      "description": "Mala Pork Patty, Cheddar Cheese, Fu Chuk, Mala Bacon Chutney",
+      "price": 23.9,
+      "tags": []
+    },
+    {
+      "category": "Burger",
+      "name": "Pork Double Cheeseburger",
+      "description": "Homemade Pork Patty, Cheddar Cheese, Bacon, Tomato, Caramelised Onion",
+      "price": 23.9,
+      "tags": []
+    },
+    {
+      "category": "Burger",
+      "name": "Soy Garlic Chicken",
+      "description": "Fried Chicken Thigh, Sunny Side Up, Cheddar Cheese, Tomato, Soy Garlic, Curry Mayo",
+      "price": 23.9,
+      "tags": []
+    },
+    {
+      "category": "Burger",
+      "name": "Filet-O-Shrimp",
+      "description": "Homemade Shrimp Patty, Cheddar Cheese, Kyuri, Tartare Sauce",
+      "price": 23.9,
+      "tags": []
+    }
+  ]

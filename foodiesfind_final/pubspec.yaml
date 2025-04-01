@@ -86,3 +86,4 @@ flutter:
     - assets/images/google_logo.png
     - assets/images/foodiesfind_plainlogo.png
     - assets/images/foodiesfind_fulllogo.png
+    - assets/data/menu_items.json

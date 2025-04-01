@@ -9,7 +9,7 @@ class RestaurantDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF4F4F4),
+      backgroundColor: const Color(0xFFFFFFFF),
       appBar: AppBar(
         title: const Text('Restaurant'),
         backgroundColor: Colors.white,
@@ -45,73 +45,105 @@ class RestaurantDetailPage extends StatelessWidget {
               final address = data['address'] ?? '';
               final phone = data['phoneNum'] ?? '';
               final openingHours = data['openingHours'] as List<dynamic>? ?? [];
-              final types = data['types'] as List<dynamic>? ?? [];
 
               return Padding(
-                padding: const EdgeInsets.only(
-                  bottom: 70,
-                ), // Leave space for button
+                padding: const EdgeInsets.only(bottom: 100),
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Image.asset(
-                        'assets/images/Mews-cafe-food-pic-2020.jpg',
-                        width: double.infinity,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      ),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          name,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(16),
+                          bottomRight: Radius.circular(16),
+                        ),
+                        child: Image.asset(
+                          'assets/images/Mews-cafe-food-pic-2020.jpg',
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 16),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
-                              Icons.star,
-                              color: Colors.orange,
-                              size: 20,
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            const SizedBox(width: 4),
-                            Text(rating),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  color: Colors.orange,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(rating),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            if (address.isNotEmpty)
+                              Text(
+                                address,
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            if (phone.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  'Phone: $phone',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    '/restaurantMenu',
+                                    arguments: {'restaurantId': restaurantId},
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.restaurant_menu,
+                                  color: Color(0xFF145858),
+                                ),
+                                label: const Text(
+                                  'View Menu',
+                                  style: TextStyle(
+                                    color: Color(0xFF145858),
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFFFFFFFF),
+                                  side: const BorderSide(
+                                    color: Color(0xFF145858),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(60),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      if (address.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(address),
-                        ),
-                      const SizedBox(height: 8),
-                      if (phone.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('Phone: $phone'),
-                        ),
-                      if (types.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          child: Text('Types: ${types.join(', ')}'),
-                        ),
-                      const Divider(height: 24),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
+                      const Divider(height: 24, thickness: 1),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: const Text(
                           'Opening Hours',
                           style: TextStyle(
                             fontSize: 18,
@@ -119,19 +151,30 @@ class RestaurantDetailPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      for (final dayLine in openingHours) ...[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 2,
-                          ),
-                          child: Text(dayLine.toString()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 6,
                         ),
-                      ],
-                      const Divider(height: 24),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children:
+                              openingHours
+                                  .map(
+                                    (line) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 2,
+                                      ),
+                                      child: Text(line.toString()),
+                                    ),
+                                  )
+                                  .toList(),
+                        ),
+                      ),
+                      const Divider(height: 24, thickness: 1),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: const Text(
                           'Reviews',
                           style: TextStyle(
                             fontSize: 18,
@@ -146,11 +189,10 @@ class RestaurantDetailPage extends StatelessWidget {
               );
             },
           ),
-
-          // Fixed Button
+          // Fixed Write Review Button
           Positioned(
-            left: 80,
-            right: 80,
+            left: 20,
+            right: 20,
             bottom: 16,
             child: ElevatedButton(
               onPressed: () {
@@ -161,11 +203,8 @@ class RestaurantDetailPage extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFC8E0CA),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 26,
-                  vertical: 14,
-                ),
+                backgroundColor: const Color(0xFFC8E0CA),
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(60),
                 ),

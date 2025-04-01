@@ -7,6 +7,8 @@ import 'package:foodiesfind_final/screens/sign_up.dart';
 import 'package:foodiesfind_final/screens/sign_in.dart';
 import 'package:foodiesfind_final/screens/user_profile.dart';
 import 'package:foodiesfind_final/screens/review_form.dart';
+import 'package:foodiesfind_final/screens/restaurant_menu.dart';
+import 'package:foodiesfind_final/widgets/menu_upload.dart';
 import 'screens/homepage.dart';
 import 'screens/restaurantlist.dart';
 import 'theme.dart';
@@ -81,6 +83,30 @@ class MyApp extends StatelessWidget {
           case '/reviewform':
             return MaterialPageRoute(
               builder: (_) => const ReviewFormPage(restaurantId: ''),
+            );
+          case '/restaurantMenu':
+            final args = settings.arguments;
+            if (args != null && args is Map<String, String>) {
+              final restaurantId = args['restaurantId'] ?? '';
+              return MaterialPageRoute(
+                builder: (_) => RestaurantMenuPage(restaurantId: restaurantId),
+              );
+            }
+            return MaterialPageRoute(
+              builder: (_) => const RestaurantMenuPage(restaurantId: ''),
+            );
+          case '/uploadmenu':
+            final args = settings.arguments;
+            if (args != null && args is Map<String, String>) {
+              return MaterialPageRoute(
+                builder:
+                    (_) => MenuUploadPage(
+                      restaurantId: args['restaurantId'] ?? '',
+                    ),
+              );
+            }
+            return MaterialPageRoute(
+              builder: (_) => const MenuUploadPage(restaurantId: ''),
             );
         }
 
