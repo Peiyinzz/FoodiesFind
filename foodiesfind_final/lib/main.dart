@@ -81,9 +81,12 @@ class MyApp extends StatelessWidget {
           case '/restaurants':
             return MaterialPageRoute(builder: (_) => RestaurantListingPage());
           case '/reviewform':
+            final args = settings.arguments as Map<String, dynamic>;
+            final restaurantId = args['restaurantId'] ?? '';
             return MaterialPageRoute(
-              builder: (_) => const ReviewFormPage(restaurantId: ''),
+              builder: (_) => ReviewFormPage(restaurantId: restaurantId),
             );
+
           case '/restaurantMenu':
             final args = settings.arguments;
             if (args != null && args is Map<String, String>) {

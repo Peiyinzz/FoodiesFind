@@ -10,12 +10,6 @@ class RestaurantDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFFFF),
-      appBar: AppBar(
-        title: const Text('Restaurant'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
       body: Stack(
         children: [
           FutureBuilder<DocumentSnapshot>(
@@ -46,150 +40,206 @@ class RestaurantDetailPage extends StatelessWidget {
               final phone = data['phoneNum'] ?? '';
               final openingHours = data['openingHours'] as List<dynamic>? ?? [];
 
-              return Padding(
+              return SingleChildScrollView(
                 padding: const EdgeInsets.only(bottom: 100),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(16),
-                          bottomRight: Radius.circular(16),
-                        ),
-                        child: Image.asset(
-                          'assets/images/Mews-cafe-food-pic-2020.jpg',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Stack(
+                      children: [
+                        SizedBox(
+                          height: 280,
                           width: double.infinity,
-                          height: 200,
-                          fit: BoxFit.cover,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.asset(
+                                'assets/images/Mews-cafe-food-pic-2020.jpg',
+                                fit: BoxFit.cover,
+                              ),
+                              Container(
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
+                                    colors: [
+                                      Color.fromRGBO(0, 0, 0, 0.6),
+                                      Color.fromRGBO(0, 0, 0, 0.3),
+                                      Color.fromRGBO(0, 0, 0, 0.0),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 16,
+                                left: 16,
+                                child: Text(
+                                  name,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                    shadows: [
+                                      Shadow(
+                                        blurRadius: 4,
+                                        color: Colors.black,
+                                        offset: Offset(1, 1),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 16,
+                                right: 16,
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.star,
+                                      color: Colors.orange,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      rating,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        shadows: [
+                                          Shadow(
+                                            blurRadius: 3,
+                                            color: Colors.black,
+                                            offset: Offset(1, 1),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              name,
-                              style: const TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.bold,
+                        SafeArea(
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.arrow_back,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () => Navigator.pop(context),
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.star,
-                                  color: Colors.orange,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(rating),
-                              ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (address.isNotEmpty)
+                            Text(
+                              'Address: $address',
+                              style: const TextStyle(fontSize: 14),
                             ),
-                            const SizedBox(height: 12),
-                            if (address.isNotEmpty)
-                              Text(
-                                address,
+                          if (phone.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                'Phone: $phone',
                                 style: const TextStyle(fontSize: 14),
                               ),
-                            if (phone.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4),
-                                child: Text(
-                                  'Phone: $phone',
-                                  style: const TextStyle(fontSize: 14),
+                            ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/restaurantMenu',
+                                  arguments: {'restaurantId': restaurantId},
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.restaurant_menu,
+                                color: Color(0xFF145858),
+                              ),
+                              label: const Text(
+                                'View Menu',
+                                style: TextStyle(
+                                  color: Color(0xFF145858),
+                                  fontSize: 16,
                                 ),
                               ),
-                            const SizedBox(height: 16),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    '/restaurantMenu',
-                                    arguments: {'restaurantId': restaurantId},
-                                  );
-                                },
-                                icon: const Icon(
-                                  Icons.restaurant_menu,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFFFFFFFF),
+                                side: const BorderSide(
                                   color: Color(0xFF145858),
                                 ),
-                                label: const Text(
-                                  'View Menu',
-                                  style: TextStyle(
-                                    color: Color(0xFF145858),
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFFFFFFFF),
-                                  side: const BorderSide(
-                                    color: Color(0xFF145858),
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(60),
-                                  ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(60),
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      const Divider(height: 24, thickness: 1),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: const Text(
-                          'Opening Hours',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
                           ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 24, thickness: 1),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: const Text(
+                        'Opening Hours',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 6,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children:
-                              openingHours
-                                  .map(
-                                    (line) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 2,
-                                      ),
-                                      child: Text(line.toString()),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 6,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children:
+                            openingHours
+                                .map(
+                                  (line) => Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 2,
                                     ),
-                                  )
-                                  .toList(),
+                                    child: Text(line.toString()),
+                                  ),
+                                )
+                                .toList(),
+                      ),
+                    ),
+                    const Divider(height: 24, thickness: 1),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: const Text(
+                        'Reviews',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const Divider(height: 24, thickness: 1),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: const Text(
-                          'Reviews',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      ReviewsList(restaurantId: restaurantId),
-                    ],
-                  ),
+                    ),
+                    ReviewsList(restaurantId: restaurantId),
+                  ],
                 ),
               );
             },
           ),
-          // Fixed Write Review Button
           Positioned(
             left: 20,
             right: 20,
