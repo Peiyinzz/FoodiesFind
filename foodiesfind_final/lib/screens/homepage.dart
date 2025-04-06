@@ -66,12 +66,10 @@ class _HomePageState extends State<HomePage> {
                               : null,
                     ),
                   ),
-                  Row(
-                    children: const [
-                      Icon(Icons.search, color: Colors.white, size: 28),
-                      SizedBox(width: 16),
-                      Icon(Icons.map_outlined, color: Colors.white, size: 28),
-                    ],
+                  const Icon(
+                    Icons.notifications_none,
+                    color: Colors.white,
+                    size: 28,
                   ),
                 ],
               ),
@@ -88,7 +86,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 6),
               const Text(
-                'Wanna eat tonight?',
+                'Looking for something new?',
                 style: TextStyle(fontSize: 16, color: Colors.white70),
               ),
               const SizedBox(height: 24),
@@ -125,63 +123,97 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 30),
 
-              // Categories Grid
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                physics: const NeverScrollableScrollPhysics(),
+              // Top Feature Banners (Image-backed)
+              Row(
                 children: [
-                  _CategoryCard(
-                    title: 'Sushi',
-                    subtitle: '25+ Restaurants',
-                    icon: Icons.set_meal,
-                  ),
-                  _CategoryCard(
-                    title: 'Burgers',
-                    subtitle: '10+ Restaurants',
-                    icon: Icons.lunch_dining,
-                  ),
-                  _CategoryCard(
-                    title: 'See All Categories',
-                    subtitle: '100+ Categories',
-                    icon: Icons.fastfood,
-                  ),
-                  _CategoryCard(
-                    title: 'Near Me',
-                    subtitle: 'Based on Location',
-                    icon: Icons.location_pin,
-                    onTap:
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const NearbyMapScreen(),
+                  Expanded(
+                    child: _ImageFeatureCard(
+                      title: 'Near Me',
+                      subtitle: '',
+                      icon: Icons.location_pin,
+                      backgroundImage:
+                          'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Others%2FNearMe.jpg?alt=media&token=2ec650c1-8347-42dd-889c-88b38c9d7a68',
+                      onTap:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const NearbyMapScreen(),
+                            ),
                           ),
-                        ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _ImageFeatureCard(
+                      title: 'Featured Restaurants',
+                      subtitle: '',
+                      icon: Icons.star,
+                      backgroundImage:
+                          'https://images.unsplash.com/photo-1600891964599-f61ba0e24092',
+                      onTap: () {},
+                    ),
                   ),
                 ],
               ),
 
               const SizedBox(height: 30),
               const Text(
-                'RECOMMENDED',
-                style: TextStyle(color: Colors.white70),
+                'Top Picks For You',
+                style: TextStyle(color: Colors.white),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
+              SizedBox(
+                height: 130,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _RecommendedItem(
+                      imageUrl:
+                          'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Owned%20food%20images%2FInheritTasteCrepeCake.jpg?alt=media&token=1337b4fc-e3bd-4641-ae6b-57a15782d110',
+                      title: 'Kenny Hills Bakery',
+                      subtitle: 'Mille Crepe',
+                      tag: 'Halal',
+                    ),
+                    const SizedBox(width: 12),
+                    _RecommendedItem(
+                      imageUrl:
+                          'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Owned%20food%20images%2FSalmonMentaiAburiMaki.webp?alt=media&token=286886bd-2a9a-4997-a77c-52d112f31d7b',
+                      title: 'Sushi Mentai',
+                      subtitle: 'Vegan Delights',
+                      tag: 'Light',
+                    ),
+                  ],
+                ),
+              ),
 
-              _RecommendedItem(
-                imageUrl: 'https://via.placeholder.com/80',
-                title: 'Get some pizza!',
-                subtitle: 'Pizza  •  10% off',
-                tag: 'PIZZA HUT',
+              const SizedBox(height: 30),
+              const Text(
+                'Popular Dishes This Week',
+                style: TextStyle(color: Colors.white),
               ),
-              const SizedBox(height: 12),
-              _RecommendedItem(
-                imageUrl: 'https://via.placeholder.com/80',
-                title: 'Best Deals Today!',
-                subtitle: 'Limited Time Offers',
-                tag: 'BURGER KING',
+              const SizedBox(height: 18),
+              SizedBox(
+                height: 130,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _RecommendedItem(
+                      imageUrl:
+                          'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Owned%20food%20images%2FPastaCarbonara.jpg?alt=media&token=dc5a7a68-7d83-4068-81a0-77ce91f65b8e',
+                      title: 'Carbonara',
+                      subtitle: '43 reviews',
+                      tag: 'Pasta',
+                    ),
+                    const SizedBox(width: 12),
+                    _RecommendedItem(
+                      imageUrl:
+                          'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Owned%20food%20images%2FTiramisuCake.jpg?alt=media&token=60eba851-54c4-4e1c-aec3-36a7c2992521',
+                      title: 'Tiramisu Cake',
+                      subtitle: '24 reviews',
+                      tag: 'Dessert',
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -254,35 +286,114 @@ class _RecommendedItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.network(
-            imageUrl,
-            width: 60,
-            height: 60,
-            fit: BoxFit.cover,
+    return Container(
+      width: 240,
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1B3A3B),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              imageUrl,
+              width: 60,
+              height: 60,
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                tag.toUpperCase(),
-                style: const TextStyle(color: Colors.orange, fontSize: 12),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  tag.toUpperCase(),
+                  style: const TextStyle(
+                    color: Color(0xFFC8E0CA),
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ImageFeatureCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final String backgroundImage;
+  final VoidCallback? onTap;
+
+  const _ImageFeatureCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.backgroundImage,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        height: 90, // ✅ Shorter height
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            image: DecorationImage(
+              image: NetworkImage(backgroundImage),
+              fit: BoxFit.cover,
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.70),
+                BlendMode.darken,
               ),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(
-                subtitle,
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.white.withOpacity(0.25),
+                radius: 18,
+                child: Icon(icon, size: 18, color: Colors.white),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
