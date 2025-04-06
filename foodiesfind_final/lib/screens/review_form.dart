@@ -22,7 +22,13 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
   List<DishReview> dishes = [DishReview()];
   List<String> menuItems = [];
 
-  final List<String> tasteOptions = ['Savoury', 'Light', 'Spicy', 'Sweet'];
+  final List<String> tasteOptions = [
+    'Savoury',
+    'Light',
+    'Sweet',
+    'Spicy',
+    'Non- spicy',
+  ];
   final List<String> ingredientOptions = [
     'Peanuts',
     'Dairy',
@@ -97,7 +103,9 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
     };
 
     try {
-      await FirebaseFirestore.instance.collection('reviews').add(reviewData);
+      await FirebaseFirestore.instance
+          .collection('user_reviews')
+          .add(reviewData);
       _showSuccessDialog();
     } catch (e) {
       debugPrint('Error submitting review: $e');
