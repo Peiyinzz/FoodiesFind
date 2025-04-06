@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile Row
+              // Updated Profile Row with Review History Icon
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -66,13 +66,29 @@ class _HomePageState extends State<HomePage> {
                               : null,
                     ),
                   ),
-                  const Icon(
-                    Icons.notifications_none,
-                    color: Colors.white,
-                    size: 28,
+                  Row(
+                    children: [
+                      // Review History Icon
+                      IconButton(
+                        icon: const Icon(Icons.history),
+                        color: Colors.white,
+                        iconSize: 26,
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/reviews_history');
+                        },
+                        tooltip: 'My Reviews',
+                      ),
+                      // Notification Icon
+                      const Icon(
+                        Icons.notifications_none,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ],
                   ),
                 ],
               ),
+
               const SizedBox(height: 24),
 
               // Greeting
@@ -159,7 +175,11 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 30),
               const Text(
                 'Top Picks For You',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 18),
               SizedBox(
@@ -189,7 +209,11 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 30),
               const Text(
                 'Popular Dishes This Week',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 18),
               SizedBox(
