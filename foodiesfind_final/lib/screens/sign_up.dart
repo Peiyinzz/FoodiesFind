@@ -43,41 +43,150 @@ class _SignUpPageState extends State<SignUpPage> {
 
     setState(() => _isLoading = true);
 
-    print('Entered _handleSignUp');
     try {
-      print('Entered try block...');
-      final credential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
-      print('After createUserWithEmailAndPassword...');
-
-      final user = credential.user;
-      print('User from credential: $user');
-
-      if (user == null) {
-        print('User is null! Exiting...');
+      final accepted = await _showTermsAndConditionsDialog();
+      if (!accepted) {
+        setState(() => _isLoading = false);
         return;
       }
 
-      print('User is non-null, email: ${user.email}');
+      final credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
 
-      // Navigate to profile completion page instead of home
+      final user = credential.user;
+      if (user == null) {
+        _showError('Sign-up failed. Please try again.');
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'username': username,
+        'email': email,
+        'tncAccepted': true,
+      });
+
       Navigator.pushReplacementNamed(
         context,
         '/userprofile',
         arguments: {'username': username, 'email': email},
       );
-
-      print('End of try block');
     } on FirebaseAuthException catch (e) {
-      print('FirebaseAuthException: $e');
       _showError(e.message ?? 'Sign-up failed');
     } catch (e) {
-      print('Generic exception: $e');
       _showError(e.toString());
     } finally {
-      print('In finally block, setting _isLoading = false');
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<bool> _showTermsAndConditionsDialog() async {
+    bool accepted = false;
+    bool isChecked = false;
+
+    while (!accepted) {
+      final result = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: const Text('Terms & Conditions'),
+                content: SizedBox(
+                  height: 320,
+                  width: double.maxFinite,
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    thickness: 4,
+                    radius: const Radius.circular(4),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Welcome to FoodiesFind. By registering or using our services, you agree to be bound by the following terms:\n\n'
+                            '1. User Accounts\n'
+                            'You must provide accurate and complete information during registration.\n\n'
+                            '2. Content\n'
+                            'User-submitted content must not be offensive or infringe on others.\n\n'
+                            '3. Data Collection\n'
+                            'We use your info based on our Privacy Policy. We do not sell your data.\n\n'
+                            '4. Usage Rules\n'
+                            'No misuse or unauthorized access of data.\n\n'
+                            '5. Modification & Termination\n'
+                            'We may update terms or suspend accounts that violate them.\n\n'
+                            '6. Limitation of Liability\n'
+                            'FoodiesFind is not liable for food reactions or third-party info changes.\n\n'
+                            'By accepting, you confirm you have read and agree to abide by these Terms & Conditions.',
+                            style: TextStyle(fontSize: 13),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: isChecked,
+                                onChanged: (val) {
+                                  setState(() {
+                                    isChecked = val ?? false;
+                                  });
+                                },
+                              ),
+                              const Flexible(
+                                child: Text(
+                                  'I have read the Terms & Conditions.',
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'You must accept the Terms & Conditions to continue.',
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('Decline'),
+                  ),
+                  ElevatedButton(
+                    onPressed:
+                        isChecked
+                            ? () {
+                              Navigator.of(context).pop(true);
+                            }
+                            : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          isChecked
+                              ? const Color(0xFFC8E0CA)
+                              : Colors.grey.shade400,
+                    ),
+                    child: const Text('Accept'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+
+      if (result == true) {
+        accepted = true;
+      }
+    }
+
+    return accepted;
   }
 
   void _showError(String message) {
