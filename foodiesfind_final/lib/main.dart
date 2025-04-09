@@ -9,6 +9,7 @@ import 'package:foodiesfind_final/screens/user_profile.dart';
 import 'package:foodiesfind_final/screens/review_form.dart';
 import 'package:foodiesfind_final/screens/restaurant_menu.dart';
 import 'package:foodiesfind_final/widgets/menu_upload.dart';
+import 'package:foodiesfind_final/screens/reviews_history.dart';
 import 'screens/homepage.dart';
 import 'screens/restaurantlist.dart';
 import 'theme.dart';
@@ -111,6 +112,9 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(
               builder: (_) => const MenuUploadPage(restaurantId: ''),
             );
+
+          case '/reviewsHistory':
+            return MaterialPageRoute(builder: (_) => const ReviewHistoryPage());
         }
 
         // Unknown route fallback

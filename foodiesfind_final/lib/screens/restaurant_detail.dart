@@ -1,5 +1,3 @@
-// Due to message length limits, I’ll split this across two messages.
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 

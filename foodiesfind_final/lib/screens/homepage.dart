@@ -74,7 +74,7 @@ class _HomePageState extends State<HomePage> {
                         color: Colors.white,
                         iconSize: 26,
                         onPressed: () {
-                          Navigator.pushNamed(context, '/reviews_history');
+                          Navigator.pushNamed(context, '/reviewsHistory');
                         },
                         tooltip: 'My Reviews',
                       ),
