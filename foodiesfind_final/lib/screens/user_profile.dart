@@ -141,7 +141,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (uid == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('User ID not found')));
+      ).showSnackBar(const SnackBar(content: Text('User ID not found')));
       return;
     }
 
@@ -154,7 +154,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
             .ref()
             .child('profile_pictures')
             .child('$uid.jpg');
-
         await ref.putFile(_pickedImage!);
         imageUrl = await ref.getDownloadURL();
       }
@@ -171,9 +170,35 @@ class _UserProfilePageState extends State<UserProfilePage> {
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error saving profile: \$e')));
+      ).showSnackBar(SnackBar(content: Text('Error saving profile: $e')));
     } finally {
       setState(() => _uploadingImage = false);
+    }
+  }
+
+  Future<void> _showLogoutConfirmation() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Log Out'),
+            content: const Text('Are you sure you want to log out?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Log Out'),
+              ),
+            ],
+          ),
+    );
+
+    if (shouldLogout == true) {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
     }
   }
 
@@ -189,7 +214,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: BackButton(color: Colors.black),
+        leading: const BackButton(color: Colors.black),
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text(
@@ -302,6 +327,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   _uploadingImage
                       ? const CircularProgressIndicator(color: Colors.black)
                       : const Text('Save Profile'),
+            ),
+            const SizedBox(height: 10),
+
+            // ✅ Logout Button with Confirmation
+            TextButton.icon(
+              onPressed: _showLogoutConfirmation,
+              icon: const Icon(Icons.logout, color: Colors.red),
+              label: const Text('Log Out', style: TextStyle(color: Colors.red)),
             ),
           ],
         ),
