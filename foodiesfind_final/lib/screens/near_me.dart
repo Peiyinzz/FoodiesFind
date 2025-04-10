@@ -1,6 +1,11 @@
+import 'dart:convert';
+import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import '../services/google_places_service.dart';
 import '../config.dart';
 
@@ -20,9 +25,26 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = true;
 
-  List<Marker> _markers = [];
-  String _currentPlaceName = "";
+  Set<Marker> _markers = {};
+  List<DocumentSnapshot> _restaurants = [];
+  Map<String, double> _distances = {};
+
   List<String> _suggestions = [];
+  DocumentSnapshot? _selectedRestaurant;
+
+  // Polylines for drawing the route on the map
+  Map<PolylineId, Polyline> _polylines = {};
+
+  // Track whether we're currently in "directions mode"
+  bool _isDirectionsMode = false;
+
+  // To restore the original markers after exiting directions mode
+  Set<Marker>? _markersBeforeDirections;
+
+  // Travel info from the Directions API
+  String? _travelDistanceText; // e.g. "9.5 km"
+  String? _travelDurationText; // e.g. "14 min"
+  String? _etaText; // e.g. "03:19"
 
   @override
   void initState() {
@@ -57,19 +79,77 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
           locationData.longitude != null) {
         _moveCameraTo(locationData.latitude!, locationData.longitude!);
       }
-
-      final placeName = await _placesService.getCurrentNearbyPlaceName(
-        locationData.latitude!,
-        locationData.longitude!,
-      );
-
-      setState(() {
-        _currentPlaceName = placeName ?? "";
-      });
     } catch (e) {
       debugPrint('Location error: $e');
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _loadRestaurantMarkers({bool onlyNearby = false}) async {
+    final snapshot =
+        await FirebaseFirestore.instance.collection('restaurants').get();
+    final List<Marker> markers = [];
+    final List<DocumentSnapshot> nearbyRestaurants = [];
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      if (data['loc'] is GeoPoint) {
+        final geo = data['loc'] as GeoPoint;
+        final lat = geo.latitude;
+        final lng = geo.longitude;
+
+        double? distanceKm;
+        if (_currentLocation != null) {
+          distanceKm = calculateDistance(
+            _currentLocation!.latitude!,
+            _currentLocation!.longitude!,
+            lat,
+            lng,
+          );
+          _distances[doc.id] = distanceKm;
+        }
+
+        // Show markers only if within 5km if onlyNearby == true, otherwise show all
+        if (!onlyNearby || (distanceKm != null && distanceKm < 5.0)) {
+          markers.add(
+            Marker(
+              markerId: MarkerId(doc.id),
+              position: LatLng(lat, lng),
+              onTap: () {
+                final data = doc.data() as Map<String, dynamic>;
+                final restaurantName = data['name'] ?? '';
+                setState(() {
+                  _selectedRestaurant = doc;
+                  _searchController.text = restaurantName;
+                  // If we were previously in directions mode, exit it
+                  _exitDirectionsMode();
+                });
+              },
+            ),
+          );
+          nearbyRestaurants.add(doc);
+        }
+      }
+    }
+
+    setState(() {
+      _restaurants = nearbyRestaurants;
+      _markers = markers.toSet();
+    });
+  }
+
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371;
+    final dLat = (lat2 - lat1) * pi / 180;
+    final dLon = (lon2 - lon1) * pi / 180;
+    final a =
+        sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1 * pi / 180) *
+            cos(lat2 * pi / 180) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c;
   }
 
   void _moveCameraTo(double lat, double lng) {
@@ -80,76 +160,183 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     );
   }
 
-  Future<void> _searchPlaces(String query) async {
-    if (query.isEmpty) return;
+  Future<void> _searchRestaurantByName(String input) async {
+    if (input.isEmpty) return;
 
-    try {
-      final coords = await _placesService.geocodeAddress(query);
-      if (coords != null) {
-        _moveCameraTo(coords.latitude, coords.longitude);
-
-        final places = await _placesService.searchPlaces(query);
-        if (places.isNotEmpty) {
-          // Create markers from the place search results
-          setState(() {
-            _markers =
-                places.map<Marker>((place) {
-                  final loc = place['geometry']['location'];
-                  return Marker(
-                    markerId: MarkerId(place['place_id']),
-                    position: LatLng(loc['lat'], loc['lng']),
-                    infoWindow: InfoWindow(title: place['name']),
-                  );
-                }).toList();
-          });
-        } else {
-          // If no places returned, just mark the geocoded location
-          setState(() {
-            _markers = [
-              Marker(
-                markerId: const MarkerId('geocode_location'),
-                position: coords,
-                infoWindow: InfoWindow(title: 'Result: $query'),
-              ),
-            ];
-          });
-        }
+    // Auto-complete: if any suggestion starts with input, use that suggestion as the name
+    String completedName = input;
+    if (_suggestions.isNotEmpty) {
+      final matchingSuggestion = _suggestions.firstWhere(
+        (s) => s.toLowerCase().startsWith(input.toLowerCase()),
+        orElse: () => input,
+      );
+      completedName = matchingSuggestion;
+      if (completedName.toLowerCase() != input.toLowerCase()) {
+        setState(() {
+          _searchController.text = completedName;
+        });
       }
-    } catch (e) {
-      debugPrint('Search failed: $e');
+    }
+
+    final snapshot =
+        await FirebaseFirestore.instance.collection('restaurants').get();
+    for (var doc in snapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final docName = (data['name'] ?? '').toString().toLowerCase();
+
+      if (docName.contains(completedName.toLowerCase()) &&
+          data['loc'] is GeoPoint) {
+        final geo = data['loc'] as GeoPoint;
+        final lat = geo.latitude;
+        final lng = geo.longitude;
+
+        double? distanceKm;
+        if (_currentLocation != null) {
+          distanceKm = calculateDistance(
+            _currentLocation!.latitude!,
+            _currentLocation!.longitude!,
+            lat,
+            lng,
+          );
+          _distances[doc.id] = distanceKm;
+        }
+
+        // Overwrite markers with just this location
+        setState(() {
+          _selectedRestaurant = doc;
+          _markers = {
+            Marker(
+              markerId: MarkerId(doc.id),
+              position: LatLng(lat, lng),
+              onTap: () {
+                final data = doc.data() as Map<String, dynamic>;
+                final name = data['name'] ?? '';
+                setState(() {
+                  _selectedRestaurant = doc;
+                  _searchController.text = name;
+                  _exitDirectionsMode();
+                });
+              },
+            ),
+          };
+          _suggestions = [];
+        });
+        _moveCameraTo(lat, lng);
+        break;
+      }
     }
   }
 
-  /// Called whenever the user types in the search bar
-  void _onTextChanged(String input) async {
-    if (input.isEmpty) {
-      setState(() => _suggestions = []);
-      return;
+  /// Fetch route details from the Directions API, parse distance & duration,
+  /// remove all other markers except destination, store original markers,
+  /// then show the directions overlay.
+  Future<void> _showRouteToRestaurant(DocumentSnapshot restaurantDoc) async {
+    // Keep track of the existing markers so we can restore them
+    _markersBeforeDirections = Set.from(_markers);
+
+    final data = restaurantDoc.data() as Map<String, dynamic>;
+    final geo = data['loc'] as GeoPoint;
+    final destination = LatLng(geo.latitude, geo.longitude);
+
+    if (_currentLocation == null) return;
+    final origin = LatLng(
+      _currentLocation!.latitude!,
+      _currentLocation!.longitude!,
+    );
+
+    final url =
+        'https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&key=$googleApiKey';
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      if (jsonData['routes'] != null && jsonData['routes'].isNotEmpty) {
+        final route = jsonData['routes'][0];
+        final leg = route['legs'][0]; // Usually the first leg is what we need
+
+        // Extract polyline points
+        final overviewPolyline = route['overview_polyline']['points'] as String;
+        final polylinePoints = PolylinePoints().decodePolyline(
+          overviewPolyline,
+        );
+        final routeCoords =
+            polylinePoints
+                .map((point) => LatLng(point.latitude, point.longitude))
+                .toList();
+
+        // Parse travel distance & duration
+        final distanceText = leg['distance']['text'] as String; // e.g. "9.5 km"
+        final durationText = leg['duration']['text'] as String; // e.g. "14 min"
+        final durationValue =
+            leg['duration']['value'] as int; // e.g. 840 (seconds)
+        // Compute ETA = now + durationValue
+        final eta = DateTime.now().add(Duration(seconds: durationValue));
+        final etaHour = eta.hour.toString().padLeft(2, '0');
+        final etaMinute = eta.minute.toString().padLeft(2, '0');
+        final etaText = "$etaHour:$etaMinute"; // e.g. "03:19"
+
+        // Update the map with a single marker for the destination
+        // and a polyline showing the route
+        setState(() {
+          // Clear existing polylines, then add the new route
+          _polylines.clear();
+          final polylineId = PolylineId("route");
+          _polylines[polylineId] = Polyline(
+            polylineId: polylineId,
+            color: Colors.blue,
+            width: 5,
+            points: routeCoords,
+          );
+
+          // Show only the destination marker
+          _markers = {
+            Marker(
+              markerId: MarkerId(restaurantDoc.id),
+              position: destination,
+              onTap: () {
+                // If user taps the marker, we consider that
+                // "selecting" the restaurant again
+                setState(() {
+                  _selectedRestaurant = restaurantDoc;
+                  _searchController.text = data['name'] ?? '';
+                  _exitDirectionsMode();
+                });
+              },
+            ),
+          };
+
+          // Set the travel info
+          _travelDistanceText = distanceText;
+          _travelDurationText = durationText;
+          _etaText = etaText;
+
+          // Switch to directions mode
+          _isDirectionsMode = true;
+        });
+      }
     }
-
-    // Fetch autocomplete suggestions
-    final suggestions = await _placesService.getAutocompleteSuggestions(input);
-
-    // Update the UI with suggestions
-    setState(() {
-      _suggestions = suggestions;
-    });
   }
 
-  /// Called when the user taps a suggestion from the dropdown
-  void _onSuggestionTap(String suggestion) {
+  /// Exit directions mode and restore original markers & polylines
+  void _exitDirectionsMode() {
     setState(() {
-      _searchController.text = suggestion;
-      _suggestions = [];
+      _isDirectionsMode = false;
+      _polylines.clear();
+      // Restore original markers if we have them
+      if (_markersBeforeDirections != null) {
+        _markers = _markersBeforeDirections!;
+        _markersBeforeDirections = null;
+      }
+      // Clear travel info
+      _travelDistanceText = null;
+      _travelDurationText = null;
+      _etaText = null;
     });
-    // Optionally call the search logic with the selected suggestion
-    _searchPlaces(suggestion);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -157,7 +344,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
               ? const Center(child: Text('Location unavailable'))
               : Stack(
                 children: [
-                  // The Map
+                  // Main Google Map
                   GoogleMap(
                     initialCameraPosition: CameraPosition(
                       target: LatLng(
@@ -168,123 +355,304 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                     ),
                     myLocationEnabled: true,
                     myLocationButtonEnabled: true,
-                    markers: Set<Marker>.of(_markers),
-                    onMapCreated: (controller) {
-                      _mapController = controller;
-                      if (_currentLocation != null) {
-                        _moveCameraTo(
-                          _currentLocation!.latitude!,
-                          _currentLocation!.longitude!,
-                        );
-                      }
-                    },
+                    markers: _markers,
+                    polylines: Set<Polyline>.of(_polylines.values),
+                    onMapCreated: (controller) => _mapController = controller,
+                    onTap:
+                        (_) => setState(() {
+                          _selectedRestaurant = null;
+                          // If the user taps elsewhere, also exit directions mode
+                          _exitDirectionsMode();
+                        }),
                   ),
 
-                  // The Search Bar + Suggestions
+                  // Positioned search UI
                   Positioned(
                     top: MediaQuery.of(context).padding.top + 12,
                     left: 16,
                     right: 16,
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Row(
-                          children: [
-                            // Back button or menu button
-                            GestureDetector(
-                              onTap: () => Navigator.pop(context),
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 6,
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(Icons.arrow_back),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-
-                            // Search Field
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(24),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 6,
-                                    ),
-                                  ],
-                                ),
-                                child: TextField(
-                                  controller: _searchController,
-                                  onChanged: _onTextChanged,
-                                  onSubmitted: _searchPlaces,
-                                  decoration: const InputDecoration(
-                                    filled: true,
-                                    fillColor:
-                                        Colors.white, // ensures inside is white
-                                    hintText: 'Search places...',
-                                    border: InputBorder.none,
-                                    icon: Icon(Icons.search),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                        _buildSearchBar(),
+                        if (_suggestions.isNotEmpty) _buildSuggestions(),
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.center,
+                          child: _buildSearchAreaButton(),
                         ),
-
-                        // Suggestions Dropdown
-                        if (_suggestions.isNotEmpty)
-                          Container(
-                            margin: const EdgeInsets.only(top: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: const [
-                                BoxShadow(color: Colors.black26, blurRadius: 5),
-                              ],
-                            ),
-                            constraints: const BoxConstraints(
-                              maxHeight:
-                                  300, // Limit max height so it doesn't fill screen
-                            ),
-                            child: ListView.separated(
-                              shrinkWrap: true,
-                              itemCount: _suggestions.length,
-                              separatorBuilder:
-                                  (context, index) => const Divider(height: 1),
-                              itemBuilder: (context, index) {
-                                final suggestion = _suggestions[index];
-                                return ListTile(
-                                  leading: const Icon(Icons.location_on),
-                                  title: Text(suggestion),
-                                  onTap: () => _onSuggestionTap(suggestion),
-                                );
-                              },
-                            ),
-                          ),
                       ],
                     ),
                   ),
+
+                  // If we're not in directions mode, show the bottom info popup
+                  if (!_isDirectionsMode && _selectedRestaurant != null)
+                    _buildBottomInfoPopup(_selectedRestaurant!),
+
+                  // If we ARE in directions mode, show the directions overlay
+                  if (_isDirectionsMode) _buildDirectionsOverlay(),
                 ],
               ),
     );
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _mapController?.dispose();
-    super.dispose();
+  /// This is the original bottom info popup for the selected restaurant
+  Widget _buildBottomInfoPopup(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    final name = data['name'] ?? 'Unnamed';
+    final address = data['address'] ?? 'Address unavailable';
+    final rating = (data['rating'] ?? 0).toString();
+    final distance = _distances[doc.id]?.toStringAsFixed(1) ?? '?';
+
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF1B3A3B),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              name,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(address, style: const TextStyle(color: Colors.white70)),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "⭐ $rating     📍 $distance km away",
+                  style: const TextStyle(color: Colors.white),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _showRouteToRestaurant(doc);
+                  },
+                  child: const Text(
+                    'Show Directions',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Popular Dish: [dish]',
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// This overlay appears at the bottom when in directions mode.
+  /// It shows time taken, distance, ETA, and an "Exit" button.
+  Widget _buildDirectionsOverlay() {
+    // Provide default strings if they are null
+    final duration = _travelDurationText ?? '';
+    final distance = _travelDistanceText ?? '';
+    final eta = _etaText ?? '';
+
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        color: Colors.black87,
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // First row: big duration on the left, exit button on the right
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Duration in big text, e.g. "14 min"
+                Text(
+                  duration,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    color: Colors.greenAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                // The exit button (red circle with X)
+                Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.red,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: _exitDirectionsMode,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Second row: distance, "middle dot", ETA, plus an optional icon
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    "$distance · $eta",
+                    style: const TextStyle(fontSize: 16, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // The text field for searching
+  Widget _buildSearchBar() {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
+            ),
+            child: const Icon(Icons.arrow_back),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: const [
+                BoxShadow(color: Colors.black12, blurRadius: 6),
+              ],
+            ),
+            child: TextField(
+              controller: _searchController,
+              onChanged: _onTextChanged,
+              onSubmitted: _searchRestaurantByName,
+              decoration: const InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
+                hintText: 'Search restaurants...',
+                border: InputBorder.none,
+                icon: Icon(Icons.search),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // The suggestions dropdown
+  Widget _buildSuggestions() {
+    final itemCount = _suggestions.length;
+    final maxHeight = (itemCount * 50.0).clamp(50.0, 300.0);
+
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 5)],
+      ),
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
+        shrinkWrap: true,
+        physics: const BouncingScrollPhysics(),
+        itemCount: itemCount,
+        itemBuilder: (context, index) {
+          final suggestion = _suggestions[index];
+          return Column(
+            children: [
+              ListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 0,
+                ),
+                horizontalTitleGap: 8,
+                leading: const Icon(Icons.location_on, size: 20),
+                title: Text(suggestion, style: const TextStyle(fontSize: 14)),
+                onTap: () {
+                  _searchController.text = suggestion;
+                  _searchRestaurantByName(suggestion);
+                },
+              ),
+              if (index < itemCount - 1) const Divider(height: 1),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // The "Search this area" button
+  Widget _buildSearchAreaButton() {
+    return Container(
+      decoration: BoxDecoration(
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: ElevatedButton(
+        onPressed: () => _loadRestaurantMarkers(onlyNearby: true),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        ),
+        child: const Text('Search this area'),
+      ),
+    );
+  }
+
+  // Called whenever text in the search bar changes
+  void _onTextChanged(String input) async {
+    if (input.isEmpty) {
+      setState(() => _suggestions = []);
+      return;
+    }
+    final snapshot =
+        await FirebaseFirestore.instance.collection('restaurants').get();
+    final List<String> matches =
+        snapshot.docs
+            .map(
+              (doc) =>
+                  (doc.data() as Map<String, dynamic>)['name']?.toString() ??
+                  '',
+            )
+            .where((name) => name.toLowerCase().contains(input.toLowerCase()))
+            .toList();
+    setState(() => _suggestions = matches);
   }
 }
