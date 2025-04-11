@@ -52,6 +52,18 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
         elevation: 0,
         title: const Text('Menu', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                '/manageMenu',
+                arguments: {'restaurantId': widget.restaurantId},
+              );
+            },
+            icon: const Icon(Icons.edit_note_rounded, color: Colors.white),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -93,19 +105,17 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
                       style: TextStyle(
                         color:
                             isSelected
-                                ? Color(0xFFC8E0CA)
-                                : Color(0xFF0E2223), // 👈 Text color
+                                ? const Color(0xFFC8E0CA)
+                                : const Color(0xFF0E2223),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     selected: isSelected,
                     onSelected:
                         (_) => setState(() => selectedCategory = category),
-                    selectedColor: Color(0xFF0E2223), // 👈 Selected background
-                    backgroundColor: const Color(
-                      0xFFB0CFC0,
-                    ), // 👈 Unselected background
-                    checkmarkColor: Color(0xFFC8E0CA), // Tick color here
+                    selectedColor: const Color(0xFF0E2223),
+                    backgroundColor: const Color(0xFFB0CFC0),
+                    checkmarkColor: const Color(0xFFC8E0CA),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                       side:
@@ -114,8 +124,7 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
                                 color: Color(0xFFC8E0CA),
                                 width: 1.5,
                               )
-                              : BorderSide
-                                  .none, // 👈 Add border only when selected
+                              : BorderSide.none,
                     ),
                   ),
                 );
@@ -141,10 +150,12 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
                         .map((doc) => doc.data() as Map<String, dynamic>)
                         .where(
                           (data) =>
-                              data['name']?.toString().toLowerCase().contains(
-                                searchQuery,
-                              ) ??
-                              false,
+                              data['isPlaceholder'] !=
+                                  true && // Filter out placeholders
+                              (data['name']?.toString().toLowerCase().contains(
+                                    searchQuery,
+                                  ) ??
+                                  false),
                         )
                         .toList();
 
@@ -174,50 +185,68 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
                     final price = data['price'] ?? 0;
                     final imageUrl = data['imageUrl'] ?? '';
 
+                    // Inside itemBuilder of GridView.builder
                     return Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 6,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ClipRRect(
                             borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(16),
+                              top: Radius.circular(20),
                             ),
                             child:
                                 imageUrl.isNotEmpty
                                     ? Image.network(
                                       imageUrl,
-                                      height: 120,
+                                      height: 130,
                                       width: double.infinity,
                                       fit: BoxFit.cover,
                                     )
                                     : Container(
-                                      height: 120,
+                                      height: 130,
                                       width: double.infinity,
                                       color: Colors.grey[300],
                                       child: const Icon(
                                         Icons.image_not_supported,
+                                        size: 32,
                                       ),
                                     ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
+                                    fontSize: 16,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'RM${price.toString()}',
-                                  style: const TextStyle(color: Colors.black54),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black54,
+                                  ),
                                 ),
                               ],
                             ),

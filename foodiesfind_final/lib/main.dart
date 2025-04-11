@@ -10,6 +10,9 @@ import 'package:foodiesfind_final/screens/review_form.dart';
 import 'package:foodiesfind_final/screens/restaurant_menu.dart';
 import 'package:foodiesfind_final/widgets/menu_upload.dart';
 import 'package:foodiesfind_final/screens/reviews_history.dart';
+import 'package:foodiesfind_final/screens/manage_menu.dart';
+import 'package:foodiesfind_final/screens/manage_item.dart';
+import 'package:foodiesfind_final/screens/manage_category.dart';
 import 'screens/homepage.dart';
 import 'screens/restaurantlist.dart';
 import 'theme.dart';
@@ -115,6 +118,43 @@ class MyApp extends StatelessWidget {
 
           case '/reviewsHistory':
             return MaterialPageRoute(builder: (_) => const ReviewHistoryPage());
+
+          case '/manageMenu':
+            final args = settings.arguments;
+            if (args != null && args is Map<String, String>) {
+              return MaterialPageRoute(
+                builder:
+                    (_) => ManageMenuPage(
+                      restaurantId: args['restaurantId'] ?? '',
+                    ),
+              );
+            }
+            return MaterialPageRoute(
+              builder:
+                  (_) => const Scaffold(
+                    body: Center(child: Text('Missing restaurantId')),
+                  ),
+            );
+
+          case '/manageItem':
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+              builder:
+                  (_) => ManageItemPage(
+                    restaurantId: args['restaurantId'],
+                    itemId: args['itemId'], // can be null
+                  ),
+            );
+
+          case '/manageCategory':
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+              builder:
+                  (_) => ManageCategoryPage(
+                    restaurantId: args['restaurantId'],
+                    categoryName: args['categoryName'],
+                  ),
+            );
         }
 
         // Unknown route fallback
