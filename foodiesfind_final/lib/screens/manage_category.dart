@@ -137,7 +137,12 @@ class _ManageCategoryPageState extends State<ManageCategoryPage> {
             children: [
               TextFormField(
                 controller: _categoryController,
-                decoration: const InputDecoration(labelText: 'Category Name'),
+                decoration: InputDecoration(
+                  labelText: 'Category Name',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 validator:
                     (val) => val == null || val.isEmpty ? 'Enter a name' : null,
               ),
@@ -145,7 +150,7 @@ class _ManageCategoryPageState extends State<ManageCategoryPage> {
               ElevatedButton(
                 onPressed: _isSaving ? null : _saveCategory,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF28A745),
+                  backgroundColor: const Color(0xFFC8E0CA),
                   padding: const EdgeInsets.symmetric(
                     vertical: 14,
                     horizontal: 10,

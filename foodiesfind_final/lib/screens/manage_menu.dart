@@ -122,16 +122,16 @@ class _ManageMenuPageState extends State<ManageMenuPage> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 30),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 30),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: Color(0xFFC8E0CA),
                     padding: const EdgeInsets.symmetric(
                       vertical: 14,
                       horizontal: 10,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
                   onPressed: () => _showAddOptions(context),

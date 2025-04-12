@@ -196,50 +196,91 @@ class _ManageItemPageState extends State<ManageItemPage> {
                           ? Image.file(_imageFile!, fit: BoxFit.cover)
                           : (_imageUrl != null && _imageUrl!.isNotEmpty)
                           ? Image.network(_imageUrl!, fit: BoxFit.cover)
-                          : const Center(
-                            child: Text(
-                              'Add Photo',
-                              style: TextStyle(color: Colors.grey),
-                            ),
+                          : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(
+                                Icons.add_photo_alternate_outlined,
+                                color: Colors.grey,
+                                size: 32,
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                'Add Photo',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
                           ),
                 ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Item Name'),
+                decoration: InputDecoration(
+                  labelText: 'Item Name',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 validator:
                     (val) => val == null || val.isEmpty ? 'Enter name' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _priceController,
-                decoration: const InputDecoration(labelText: 'Price (RM)'),
+                decoration: InputDecoration(
+                  labelText: 'Price (RM)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 keyboardType: TextInputType.number,
                 validator:
                     (val) => val == null || val.isEmpty ? 'Enter price' : null,
               ),
               const SizedBox(height: 12),
+
               DropdownButtonFormField<String>(
                 value: _selectedCategory,
-                decoration: const InputDecoration(labelText: 'Category'),
+                isExpanded: true,
+                decoration: InputDecoration(
+                  labelText: 'Category',
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.grey),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.grey),
+                  ),
+                ),
+                dropdownColor: Colors.white,
+                menuMaxHeight: 200, // Scrollbar enabled beyond this height
+                icon: const Icon(Icons.arrow_drop_down),
                 items:
-                    _categoryList
-                        .map(
-                          (cat) =>
-                              DropdownMenuItem(value: cat, child: Text(cat)),
-                        )
-                        .toList(),
+                    _categoryList.map((cat) {
+                      return DropdownMenuItem<String>(
+                        value: cat,
+                        child: Text(cat),
+                      );
+                    }).toList(),
                 onChanged: (val) => setState(() => _selectedCategory = val),
                 validator:
                     (val) =>
                         val == null || val.isEmpty ? 'Select category' : null,
               ),
+
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isSaving ? null : _saveItem,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF28A745),
+                  backgroundColor: const Color(0xFFC8E0CA),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 child: Text(
