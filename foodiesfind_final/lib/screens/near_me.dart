@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import '../services/google_places_service.dart';
 import '../config.dart';
+import 'restaurant_detail.dart';
 
 class NearbyMapScreen extends StatefulWidget {
   final String? restaurantId; // Optional parameter
@@ -56,11 +57,9 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     super.initState();
     _placesService = GooglePlacesService(googleApiKey);
     _initializeLocation().then((_) {
-      // If a restaurantId was passed, fetch that restaurant's document and add its marker.
       if (widget.restaurantId != null && widget.restaurantId!.isNotEmpty) {
         _fetchRestaurantDocument(widget.restaurantId!);
       }
-      // Optionally, you may load other markers later via "Search this area"
     });
   }
 
@@ -96,8 +95,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     }
   }
 
-  /// Fetches the restaurant document using the provided restaurantId.
-  /// If found, adds its marker, calculates distance, and moves the camera.
   Future<void> _fetchRestaurantDocument(String restaurantId) async {
     try {
       final doc =
@@ -107,29 +104,24 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
               .get();
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
-        if (data.containsKey('loc') && data['loc'] is GeoPoint) {
+        if (data['loc'] is GeoPoint) {
           final geo = data['loc'] as GeoPoint;
-          final LatLng destination = LatLng(geo.latitude, geo.longitude);
+          final dest = LatLng(geo.latitude, geo.longitude);
           setState(() {
             _selectedRestaurant = doc;
             _markers.add(
-              Marker(
-                markerId: MarkerId(restaurantId),
-                position: destination,
-                infoWindow: InfoWindow(title: data['name'] ?? 'Restaurant'),
-              ),
+              Marker(markerId: MarkerId(restaurantId), position: dest),
             );
             if (_currentLocation != null) {
-              double distanceKm = calculateDistance(
+              _distances[doc.id] = calculateDistance(
                 _currentLocation!.latitude!,
                 _currentLocation!.longitude!,
                 geo.latitude,
                 geo.longitude,
               );
-              _distances[doc.id] = distanceKm;
             }
           });
-          _moveCameraTo(destination.latitude, destination.longitude);
+          _moveCameraTo(dest.latitude, dest.longitude);
         }
       }
     } catch (e) {
@@ -141,49 +133,44 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     final snapshot =
         await FirebaseFirestore.instance.collection('restaurants').get();
     final List<Marker> markers = [];
-    final List<DocumentSnapshot> nearbyRestaurants = [];
+    final List<DocumentSnapshot> nearby = [];
 
     for (var doc in snapshot.docs) {
       final data = doc.data() as Map<String, dynamic>;
       if (data['loc'] is GeoPoint) {
         final geo = data['loc'] as GeoPoint;
-        final lat = geo.latitude;
-        final lng = geo.longitude;
-
-        double? distanceKm;
+        final lat = geo.latitude, lng = geo.longitude;
+        double? dist;
         if (_currentLocation != null) {
-          distanceKm = calculateDistance(
+          dist = calculateDistance(
             _currentLocation!.latitude!,
             _currentLocation!.longitude!,
             lat,
             lng,
           );
-          _distances[doc.id] = distanceKm;
+          _distances[doc.id] = dist;
         }
-
-        if (!onlyNearby || (distanceKm != null && distanceKm < 5.0)) {
+        if (!onlyNearby || (dist != null && dist < 5.0)) {
           markers.add(
             Marker(
               markerId: MarkerId(doc.id),
               position: LatLng(lat, lng),
               onTap: () {
-                final data = doc.data() as Map<String, dynamic>;
-                final restaurantName = data['name'] ?? '';
                 setState(() {
                   _selectedRestaurant = doc;
-                  _searchController.text = restaurantName;
+                  _searchController.text = (data['name'] ?? '').toString();
                   _exitDirectionsMode();
                 });
               },
             ),
           );
-          nearbyRestaurants.add(doc);
+          nearby.add(doc);
         }
       }
     }
 
     setState(() {
-      _restaurants = nearbyRestaurants;
+      _restaurants = nearby;
       _markers = markers.toSet();
     });
   }
@@ -212,44 +199,32 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
 
   Future<void> _searchRestaurantByName(String input) async {
     if (input.isEmpty) return;
-
-    String completedName = input;
+    String completed = input;
     if (_suggestions.isNotEmpty) {
-      final matchingSuggestion = _suggestions.firstWhere(
+      completed = _suggestions.firstWhere(
         (s) => s.toLowerCase().startsWith(input.toLowerCase()),
         orElse: () => input,
       );
-      completedName = matchingSuggestion;
-      if (completedName.toLowerCase() != input.toLowerCase()) {
-        setState(() {
-          _searchController.text = completedName;
-        });
+      if (completed.toLowerCase() != input.toLowerCase()) {
+        _searchController.text = completed;
       }
     }
 
     final snapshot =
         await FirebaseFirestore.instance.collection('restaurants').get();
     for (var doc in snapshot.docs) {
-      final data = doc.data() as Map<String, dynamic>;
-      final docName = (data['name'] ?? '').toString().toLowerCase();
-
-      if (docName.contains(completedName.toLowerCase()) &&
-          data['loc'] is GeoPoint) {
-        final geo = data['loc'] as GeoPoint;
-        final lat = geo.latitude;
-        final lng = geo.longitude;
-
-        double? distanceKm;
+      final name = (doc['name'] ?? '').toString().toLowerCase();
+      if (name.contains(completed.toLowerCase()) && doc['loc'] is GeoPoint) {
+        final geo = doc['loc'] as GeoPoint;
+        final lat = geo.latitude, lng = geo.longitude;
         if (_currentLocation != null) {
-          distanceKm = calculateDistance(
+          _distances[doc.id] = calculateDistance(
             _currentLocation!.latitude!,
             _currentLocation!.longitude!,
             lat,
             lng,
           );
-          _distances[doc.id] = distanceKm;
         }
-
         setState(() {
           _selectedRestaurant = doc;
           _markers = {
@@ -257,17 +232,15 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
               markerId: MarkerId(doc.id),
               position: LatLng(lat, lng),
               onTap: () {
-                final data = doc.data() as Map<String, dynamic>;
-                final name = data['name'] ?? '';
                 setState(() {
                   _selectedRestaurant = doc;
-                  _searchController.text = name;
+                  _searchController.text = (doc['name'] ?? '').toString();
                   _exitDirectionsMode();
                 });
               },
             ),
           };
-          _suggestions = [];
+          _suggestions.clear();
         });
         _moveCameraTo(lat, lng);
         break;
@@ -275,80 +248,67 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     }
   }
 
-  /// Fetch route details from the Directions API and show the directions overlay.
-  /// When "Show Directions" is tapped, store the current restaurant popup in _tempRestaurant
-  /// and then clear _selectedRestaurant so that the popup hides.
-  Future<void> _showRouteToRestaurant(DocumentSnapshot restaurantDoc) async {
+  Future<void> _showRouteToRestaurant(DocumentSnapshot doc) async {
     setState(() {
       _tempRestaurant = _selectedRestaurant;
-      _selectedRestaurant = null; // Hide popup
+      _selectedRestaurant = null;
     });
-
     _markersBeforeDirections = Set.from(_markers);
 
-    final data = restaurantDoc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>;
     final geo = data['loc'] as GeoPoint;
-    final destination = LatLng(geo.latitude, geo.longitude);
-
+    final dest = LatLng(geo.latitude, geo.longitude);
     if (_currentLocation == null) return;
-    final origin = LatLng(
+    final orig = LatLng(
       _currentLocation!.latitude!,
       _currentLocation!.longitude!,
     );
 
     final url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&key=$googleApiKey';
-    final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      final jsonData = jsonDecode(response.body);
-      if (jsonData['routes'] != null && jsonData['routes'].isNotEmpty) {
-        final route = jsonData['routes'][0];
-        final leg = route['legs'][0];
-
-        final overviewPolyline = route['overview_polyline']['points'] as String;
-        final polylinePoints = PolylinePoints().decodePolyline(
-          overviewPolyline,
-        );
-        final routeCoords =
-            polylinePoints
-                .map((point) => LatLng(point.latitude, point.longitude))
+        'https://maps.googleapis.com/maps/api/directions/json?origin=${orig.latitude},${orig.longitude}&destination=${dest.latitude},${dest.longitude}&key=$googleApiKey';
+    final resp = await http.get(Uri.parse(url));
+    if (resp.statusCode == 200) {
+      final js = jsonDecode(resp.body);
+      if (js['routes'] != null && js['routes'].isNotEmpty) {
+        final leg = js['routes'][0]['legs'][0];
+        final points = js['routes'][0]['overview_polyline']['points'] as String;
+        final coords =
+            PolylinePoints()
+                .decodePolyline(points)
+                .map((p) => LatLng(p.latitude, p.longitude))
                 .toList();
 
-        final distanceText = leg['distance']['text'] as String;
-        final durationText = leg['duration']['text'] as String;
-        final durationValue = leg['duration']['value'] as int;
-        final eta = DateTime.now().add(Duration(seconds: durationValue));
-        final etaHour = eta.hour.toString().padLeft(2, '0');
-        final etaMinute = eta.minute.toString().padLeft(2, '0');
-        final etaText = "$etaHour:$etaMinute";
+        final distText = leg['distance']['text'] as String;
+        final durText = leg['duration']['text'] as String;
+        final eta = DateTime.now().add(
+          Duration(seconds: leg['duration']['value'] as int),
+        );
+        final etaText =
+            "${eta.hour.toString().padLeft(2, '0')}:${eta.minute.toString().padLeft(2, '0')}";
 
         setState(() {
           _polylines.clear();
-          final polylineId = PolylineId("route");
-          _polylines[polylineId] = Polyline(
-            polylineId: polylineId,
+          _polylines[PolylineId('route')] = Polyline(
+            polylineId: PolylineId('route'),
             color: Colors.blue,
             width: 5,
-            points: routeCoords,
+            points: coords,
           );
-
           _markers = {
             Marker(
-              markerId: MarkerId(restaurantDoc.id),
-              position: destination,
+              markerId: MarkerId(doc.id),
+              position: dest,
               onTap: () {
                 setState(() {
-                  _selectedRestaurant = restaurantDoc;
-                  _searchController.text = data['name'] ?? '';
+                  _selectedRestaurant = doc;
+                  _searchController.text = (data['name'] ?? '').toString();
                   _exitDirectionsMode();
                 });
               },
             ),
           };
-
-          _travelDistanceText = distanceText;
-          _travelDurationText = durationText;
+          _travelDistanceText = distText;
+          _travelDurationText = durText;
           _etaText = etaText;
           _isDirectionsMode = true;
         });
@@ -356,7 +316,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     }
   }
 
-  /// Exit directions mode and restore original markers & re-display restaurant popup.
   void _exitDirectionsMode() {
     setState(() {
       _isDirectionsMode = false;
@@ -368,7 +327,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
       _travelDistanceText = null;
       _travelDurationText = null;
       _etaText = null;
-      // Restore the restaurant popup if it was stored
       if (_tempRestaurant != null) {
         _selectedRestaurant = _tempRestaurant;
         _tempRestaurant = null;
@@ -386,7 +344,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
               ? const Center(child: Text('Location unavailable'))
               : Stack(
                 children: [
-                  // Main Google Map
                   GoogleMap(
                     initialCameraPosition: CameraPosition(
                       target: LatLng(
@@ -399,7 +356,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                     myLocationButtonEnabled: true,
                     markers: _markers,
                     polylines: Set<Polyline>.of(_polylines.values),
-                    onMapCreated: (controller) => _mapController = controller,
+                    onMapCreated: (c) => _mapController = c,
                     onTap: (_) {
                       setState(() {
                         _selectedRestaurant = null;
@@ -407,8 +364,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                       });
                     },
                   ),
-
-                  // Positioned search UI
                   Positioned(
                     top: MediaQuery.of(context).padding.top + 12,
                     left: 16,
@@ -426,19 +381,14 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                       ],
                     ),
                   ),
-
-                  // Bottom info popup (only if not in directions mode)
                   if (!_isDirectionsMode && _selectedRestaurant != null)
                     _buildBottomInfoPopup(_selectedRestaurant!),
-
-                  // Directions overlay (if in directions mode)
                   if (_isDirectionsMode) _buildDirectionsOverlay(),
                 ],
               ),
     );
   }
 
-  /// Bottom info popup for the selected restaurant.
   Widget _buildBottomInfoPopup(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     final name = data['name'] ?? 'Unnamed';
@@ -480,9 +430,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                   style: const TextStyle(color: Colors.white),
                 ),
                 TextButton(
-                  onPressed: () {
-                    _showRouteToRestaurant(doc);
-                  },
+                  onPressed: () => _showRouteToRestaurant(doc),
                   child: const Text(
                     'Show Directions',
                     style: TextStyle(
@@ -498,16 +446,46 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
               'Popular Dish: [dish]',
               style: TextStyle(color: Colors.white),
             ),
+            const SizedBox(height: 12),
+            Center(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFBAF25),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => RestaurantDetailPage(restaurantId: doc.id),
+                    ),
+                  );
+                },
+                child: const Text(
+                  'View More',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  /// Directions overlay shown when in directions mode.
   Widget _buildDirectionsOverlay() {
-    final duration = _travelDurationText ?? '';
-    final distance = _travelDistanceText ?? '';
+    final d = _travelDurationText ?? '';
+    final dist = _travelDistanceText ?? '';
     final eta = _etaText ?? '';
 
     return Positioned(
@@ -524,7 +502,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  duration,
+                  d,
                   style: const TextStyle(
                     fontSize: 28,
                     color: Colors.greenAccent,
@@ -548,7 +526,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    "$distance · $eta",
+                    "$dist · $eta",
                     style: const TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),
@@ -560,7 +538,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     );
   }
 
-  /// Search bar at the top.
   Widget _buildSearchBar() {
     return Row(
       children: [
@@ -605,11 +582,9 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     );
   }
 
-  /// Suggestions dropdown below the search bar.
   Widget _buildSuggestions() {
-    final itemCount = _suggestions.length;
-    final maxHeight = (itemCount * 50.0).clamp(50.0, 300.0);
-
+    final count = _suggestions.length;
+    final maxH = (count * 50.0).clamp(50.0, 300.0);
     return Container(
       margin: const EdgeInsets.only(top: 4),
       decoration: BoxDecoration(
@@ -617,14 +592,14 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 5)],
       ),
-      constraints: BoxConstraints(maxHeight: maxHeight),
+      constraints: BoxConstraints(maxHeight: maxH),
       child: ListView.builder(
         padding: EdgeInsets.zero,
         shrinkWrap: true,
         physics: const BouncingScrollPhysics(),
-        itemCount: itemCount,
-        itemBuilder: (context, index) {
-          final suggestion = _suggestions[index];
+        itemCount: count,
+        itemBuilder: (ctx, i) {
+          final s = _suggestions[i];
           return Column(
             children: [
               ListTile(
@@ -635,13 +610,13 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                 ),
                 horizontalTitleGap: 8,
                 leading: const Icon(Icons.location_on, size: 20),
-                title: Text(suggestion, style: const TextStyle(fontSize: 14)),
+                title: Text(s, style: const TextStyle(fontSize: 14)),
                 onTap: () {
-                  _searchController.text = suggestion;
-                  _searchRestaurantByName(suggestion);
+                  _searchController.text = s;
+                  _searchRestaurantByName(s);
                 },
               ),
-              if (index < itemCount - 1) const Divider(height: 1),
+              if (i < count - 1) const Divider(height: 1),
             ],
           );
         },
@@ -649,7 +624,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     );
   }
 
-  /// "Search this area" button.
   Widget _buildSearchAreaButton() {
     return Container(
       decoration: BoxDecoration(
@@ -672,7 +646,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     );
   }
 
-  /// Called when the search field changes.
   void _onTextChanged(String input) async {
     if (input.isEmpty) {
       setState(() => _suggestions = []);
@@ -680,14 +653,13 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     }
     final snapshot =
         await FirebaseFirestore.instance.collection('restaurants').get();
-    final List<String> matches =
+    final matches =
         snapshot.docs
             .map(
-              (doc) =>
-                  (doc.data() as Map<String, dynamic>)['name']?.toString() ??
-                  '',
+              (d) =>
+                  (d.data() as Map<String, dynamic>)['name']?.toString() ?? '',
             )
-            .where((name) => name.toLowerCase().contains(input.toLowerCase()))
+            .where((n) => n.toLowerCase().contains(input.toLowerCase()))
             .toList();
     setState(() => _suggestions = matches);
   }
