@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'public_reviews_history.dart';
 
 class RestaurantDetailPage extends StatefulWidget {
   final String restaurantId;
@@ -11,7 +12,6 @@ class RestaurantDetailPage extends StatefulWidget {
 }
 
 class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
-  // Controls whether we show the "Info" section (true) or "Reviews" section (false).
   bool _showGeneralInfo = true;
 
   @override
@@ -45,9 +45,9 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
               ),
             );
           }
+
           final data = doc.data() as Map<String, dynamic>;
           final name = data['name'] ?? 'Unnamed';
-          final rating = data['rating']?.toString() ?? '-';
           final address = data['address'] ?? '';
           final phone = data['phoneNum'] ?? '';
           final openingHours = data['openingHours'] as List<dynamic>? ?? [];
@@ -59,99 +59,8 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ========================
-                    // Hero Image / Top Section
-                    // ========================
-                    Stack(
-                      children: [
-                        SizedBox(
-                          height: 280,
-                          width: double.infinity,
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.asset(
-                                'assets/images/Mews-cafe-food-pic-2020.jpg',
-                                fit: BoxFit.cover,
-                              ),
-                              // Dark gradient overlay
-                              Container(
-                                decoration: const BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.bottomCenter,
-                                    end: Alignment.topCenter,
-                                    colors: [
-                                      Color.fromRGBO(0, 0, 0, 0.7),
-                                      Color.fromRGBO(0, 0, 0, 0.3),
-                                      Color.fromRGBO(0, 0, 0, 0.0),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 16,
-                                left: 16,
-                                child: Text(
-                                  name,
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 16,
-                                right: 16,
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.star,
-                                      color: Colors.amber,
-                                      size: 18,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      rating,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // Back arrow
-                              SafeArea(
-                                child: Align(
-                                  alignment: Alignment.topLeft,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8),
-                                    child: IconButton(
-                                      icon: const Icon(
-                                        Icons.arrow_back,
-                                        color: Colors.white,
-                                      ),
-                                      onPressed: () => Navigator.pop(context),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // =========================
-                    // Toggle Bar BELOW the Image
-                    // =========================
+                    _buildHeroSection(name),
                     _buildSegmentedToggle(),
-
-                    // ======================
-                    // Conditional Content
-                    // ======================
                     if (_showGeneralInfo)
                       _buildGeneralInfoSection(
                         address: address,
@@ -163,8 +72,6 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                   ],
                 ),
               ),
-
-              // Dark overlay behind the "Write a Review" button (only in Reviews mode)
               if (!_showGeneralInfo)
                 Positioned(
                   bottom: 0,
@@ -172,8 +79,6 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                   right: 0,
                   child: Container(height: 100, color: const Color(0xFF0E2223)),
                 ),
-
-              // "Write a Review" button (only in Reviews view)
               if (!_showGeneralInfo)
                 Positioned(
                   left: 20,
@@ -207,10 +112,63 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     );
   }
 
-  /// Segmented toggle bar with the preferred design:
-  /// - Outer container: transparent fill with a white border.
-  /// - Animated thumb: white fill.
-  /// - Active text: dark (0xFF0E2223); inactive text: white.
+  Widget _buildHeroSection(String name) {
+    return Stack(
+      children: [
+        SizedBox(
+          height: 280,
+          width: double.infinity,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(
+                'assets/images/Mews-cafe-food-pic-2020.jpg',
+                fit: BoxFit.cover,
+              ),
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Color.fromRGBO(0, 0, 0, 0.7),
+                      Color.fromRGBO(0, 0, 0, 0.3),
+                      Color.fromRGBO(0, 0, 0, 0.0),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 16,
+                left: 16,
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              SafeArea(
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSegmentedToggle() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
@@ -294,9 +252,6 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     );
   }
 
-  /// General info section with additional spacing.
-  /// Contains address, an underlined "View on Map" button with a map icon,
-  /// phone number, opening hours, and the "View Menu" button at the bottom.
   Widget _buildGeneralInfoSection({
     required String address,
     required String phone,
@@ -312,7 +267,15 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
               padding: const EdgeInsets.only(top: 20),
               child: Text(
                 '📍 $address',
-                style: const TextStyle(fontSize: 14, color: Colors.white70),
+                style: const TextStyle(fontSize: 14, color: Colors.white),
+              ),
+            ),
+          if (phone.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Text(
+                '📞 $phone',
+                style: const TextStyle(fontSize: 14, color: Colors.white),
               ),
             ),
           if (address.isNotEmpty)
@@ -345,34 +308,28 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                 ),
               ),
             ),
-          if (phone.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 24),
-              child: Text(
-                '📞 $phone',
-                style: const TextStyle(fontSize: 14, color: Colors.white70),
+          if (openingHours.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            const Divider(height: 1, thickness: 1, color: Colors.white24),
+            const SizedBox(height: 12),
+            const Text(
+              'Opening Hours',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
-          const SizedBox(height: 24),
-          const Divider(height: 1, thickness: 1, color: Colors.white24),
-          const SizedBox(height: 12),
-          const Text(
-            'Opening Hours',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 10),
-          for (final line in openingHours)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Text(
-                line.toString(),
-                style: const TextStyle(color: Colors.white70),
+            const SizedBox(height: 10),
+            for (final line in openingHours)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Text(
+                  line.toString(),
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
-            ),
+          ],
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
@@ -403,12 +360,16 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     );
   }
 
-  /// Reviews section.
   Widget _buildReviewsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Divider(height: 24, thickness: 1, color: Colors.white24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: ReviewSummaryWidget(restaurantId: widget.restaurantId),
+        ),
+        const SizedBox(height: 16),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20),
           child: Text(
@@ -433,56 +394,129 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: StreamBuilder<QuerySnapshot>(
-            stream:
-                FirebaseFirestore.instance
-                    .collection('restaurants')
-                    .doc(widget.restaurantId)
-                    .collection('reviews')
-                    .orderBy('createdAt', descending: true)
-                    .snapshots(),
-            builder: (context, googleSnapshot) {
-              if (googleSnapshot.hasError) {
-                return const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text(
-                    'Error loading Google reviews.',
-                    style: TextStyle(color: Colors.white70),
+        GoogleReviews(restaurantId: widget.restaurantId),
+      ],
+    );
+  }
+}
+
+/// Summarizes user reviews from top-level 'user_reviews'.
+class ReviewSummaryWidget extends StatelessWidget {
+  final String restaurantId;
+  const ReviewSummaryWidget({Key? key, required this.restaurantId})
+    : super(key: key);
+
+  Future<Map<String, dynamic>> _getReviewSummary() async {
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection('user_reviews')
+            .where('restaurantId', isEqualTo: restaurantId)
+            .get();
+
+    double sumRatings = 0;
+    int totalReviews = snapshot.docs.length;
+    Map<int, int> starCounts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+
+    for (var doc in snapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      int rating = 0;
+      if (data['rating'] != null) {
+        rating = (data['rating'] as num).toInt();
+      }
+      sumRatings += rating;
+      if (starCounts.containsKey(rating)) {
+        starCounts[rating] = starCounts[rating]! + 1;
+      }
+    }
+
+    double avgRating = totalReviews > 0 ? sumRatings / totalReviews : 0;
+    return {
+      'totalReviews': totalReviews,
+      'avgRating': avgRating,
+      'starCounts': starCounts,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _getReviewSummary(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text(
+              'Error loading review summary',
+              style: TextStyle(color: Colors.white),
+            ),
+          );
+        }
+
+        final summary = snapshot.data ?? {};
+        final totalReviews = summary['totalReviews'] ?? 0;
+        final avgRating = summary['avgRating'] ?? 0.0;
+        final starCounts = Map<int, int>.from(summary['starCounts'] ?? {});
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  avgRating.toStringAsFixed(1),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
                   ),
-                );
-              }
-              if (!googleSnapshot.hasData) {
-                return const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
-                );
-              }
-              final googleDocs = googleSnapshot.data!.docs;
-              return Column(
-                children:
-                    googleDocs.map((doc) {
-                      final review = doc.data() as Map<String, dynamic>;
-                      final author = review['authorName'] ?? 'Google User';
-                      final reviewText = review['text'] ?? '';
-                      final reviewRating = review['rating']?.toString() ?? '-';
-                      return ListTile(
-                        title: Text(
-                          '$author - Rating: $reviewRating',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        subtitle: Text(
-                          reviewText,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$totalReviews reviews',
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ],
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                children: [
+                  for (int star = 5; star >= 1; star--) ...[
+                    Row(
+                      children: [
+                        Text(
+                          '$star stars',
                           style: const TextStyle(color: Colors.white70),
                         ),
-                      );
-                    }).toList(),
-              );
-            },
-          ),
-        ),
-      ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: LinearProgressIndicator(
+                            value:
+                                totalReviews > 0
+                                    ? (starCounts[star] ?? 0) / totalReviews
+                                    : 0,
+                            backgroundColor: Colors.white24,
+                            color: Colors.amber,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${starCounts[star] ?? 0}',
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -497,18 +531,19 @@ class ReviewsList extends StatefulWidget {
 
 class _ReviewsListState extends State<ReviewsList> {
   final Map<String, bool> _expanded = {};
+  final String _currentUserId = 'testUserId';
+  final Map<String, String> _usernames = {};
 
-  Future<String> _getUsername(String userId) async {
-    try {
-      final snap =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(userId)
-              .get();
-      return snap.data()?['username'] ?? 'Anonymous';
-    } catch (_) {
-      return 'Anonymous';
-    }
+  Future<String> _fetchUsername(String userId) async {
+    if (_usernames.containsKey(userId)) return _usernames[userId]!;
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    final username =
+        (doc.exists && doc.data()!.containsKey('username'))
+            ? doc.get('username') as String
+            : 'Anonymous';
+    _usernames[userId] = username;
+    return username;
   }
 
   @override
@@ -520,11 +555,331 @@ class _ReviewsListState extends State<ReviewsList> {
               .where('restaurantId', isEqualTo: widget.restaurantId)
               .orderBy('createdAt', descending: true)
               .get(),
+      builder: (context, snap) {
+        if (snap.hasError) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('Error loading user reviews.'),
+          );
+        }
+        if (!snap.hasData) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: CircularProgressIndicator(),
+          );
+        }
+        final docs = snap.data!.docs;
+        return Column(
+          children:
+              docs.map((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                final docId = doc.id;
+                final userId = data['userId'] ?? '';
+                final rating = (data['rating'] ?? 0).toDouble();
+                final text = data['text'] ?? '';
+                final dishes = data['dishes'] as List<dynamic>? ?? [];
+                final upvotes = List<String>.from(data['upvotes'] ?? []);
+                final downvotes = List<String>.from(data['downvotes'] ?? []);
+                final upCount = upvotes.length;
+                final downCount = downvotes.length;
+                final expanded = _expanded[docId] ?? false;
+                final timestamp = data['createdAt'] as Timestamp?;
+
+                return FutureBuilder<String>(
+                  future: _fetchUsername(userId),
+                  builder: (context, userSnap) {
+                    final username = userSnap.data ?? 'Anonymous';
+                    return Container(
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 20,
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header: username on top line, rating bar below, expand icon on the right
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Tappable username
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (_) => PublicReviewHistoryPage(
+                                                  userId: userId,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                      child: Text(
+                                        username,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    // Rating bar underneath
+                                    RatingBar(rating: rating),
+                                  ],
+                                ),
+                              ),
+                              // Expand / collapse icon
+                              IconButton(
+                                icon: Icon(
+                                  expanded
+                                      ? Icons.expand_less
+                                      : Icons.expand_more,
+                                ),
+                                onPressed: () {
+                                  setState(() => _expanded[docId] = !expanded);
+                                },
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 8),
+                          Text(
+                            text,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
+                          ),
+
+                          // Dish details when expanded
+                          if (expanded) ...[
+                            const SizedBox(height: 12),
+                            for (var dishData in dishes) ...[
+                              Builder(
+                                builder: (_) {
+                                  final dish = dishData as Map<String, dynamic>;
+                                  final dishName = dish['name'] ?? '';
+                                  final tags = <String>[
+                                    ...List<String>.from(dish['taste'] ?? []),
+                                    ...List<String>.from(
+                                      dish['ingredients'] ?? [],
+                                    ),
+                                    ...List<String>.from(dish['dietary'] ?? []),
+                                  ];
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        dishName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Wrap(
+                                        spacing: 6,
+                                        runSpacing: 4,
+                                        children:
+                                            tags.map((tag) {
+                                              Color bg = Colors.grey.shade300;
+                                              if ((dish['taste'] ?? [])
+                                                  .contains(tag)) {
+                                                bg = const Color(0xFFFBAF25);
+                                              } else if ((dish['ingredients'] ??
+                                                      [])
+                                                  .contains(tag)) {
+                                                bg = const Color(0xFFC8E0CA);
+                                              } else if ((dish['dietary'] ?? [])
+                                                  .contains(tag)) {
+                                                bg = const Color(0xFF1D7D7D);
+                                              }
+                                              return Chip(
+                                                label: Text(
+                                                  tag,
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                backgroundColor: bg,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                              );
+                                            }).toList(),
+                                      ),
+                                      const SizedBox(height: 8),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
+                          ],
+
+                          // Bottom row: date and votes
+                          Row(
+                            children: [
+                              if (timestamp != null)
+                                Text(
+                                  timestamp
+                                      .toDate()
+                                      .toLocal()
+                                      .toString()
+                                      .split(' ')
+                                      .first,
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              const Spacer(),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.thumb_up_alt_outlined,
+                                  color:
+                                      upvotes.contains(_currentUserId)
+                                          ? Colors.blue
+                                          : Colors.grey,
+                                ),
+                                onPressed:
+                                    () => _toggleUpvoteDownvote(
+                                      doc.reference,
+                                      upvotes,
+                                      downvotes,
+                                      isUpvote: true,
+                                    ),
+                              ),
+                              Text(
+                                '$upCount',
+                                style: const TextStyle(color: Colors.black54),
+                              ),
+                              const SizedBox(width: 16),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.thumb_down_alt_outlined,
+                                  color:
+                                      downvotes.contains(_currentUserId)
+                                          ? Colors.red
+                                          : Colors.grey,
+                                ),
+                                onPressed:
+                                    () => _toggleUpvoteDownvote(
+                                      doc.reference,
+                                      upvotes,
+                                      downvotes,
+                                      isUpvote: false,
+                                    ),
+                              ),
+                              Text(
+                                '$downCount',
+                                style: const TextStyle(color: Colors.black54),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
+        );
+      },
+    );
+  }
+
+  Future<void> _toggleUpvoteDownvote(
+    DocumentReference reviewRef,
+    List<String> upvotes,
+    List<String> downvotes, {
+    required bool isUpvote,
+  }) async {
+    if (isUpvote) {
+      if (upvotes.contains(_currentUserId)) {
+        upvotes.remove(_currentUserId);
+      } else {
+        upvotes.add(_currentUserId);
+        downvotes.remove(_currentUserId);
+      }
+    } else {
+      if (downvotes.contains(_currentUserId)) {
+        downvotes.remove(_currentUserId);
+      } else {
+        downvotes.add(_currentUserId);
+        upvotes.remove(_currentUserId);
+      }
+    }
+    await reviewRef.update({'upvotes': upvotes, 'downvotes': downvotes});
+    setState(() {});
+  }
+}
+
+/// A simple star rating bar for values from 0.0 to 5.0.
+class RatingBar extends StatelessWidget {
+  final double rating;
+  const RatingBar({Key? key, required this.rating}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    int fullStars = rating.floor();
+    bool hasHalfStar = (rating - fullStars) >= 0.5;
+    int emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int i = 0; i < fullStars; i++)
+          const Icon(Icons.star, color: Colors.amber, size: 16),
+        if (hasHalfStar)
+          const Icon(Icons.star_half, color: Colors.amber, size: 16),
+        for (int i = 0; i < emptyStars; i++)
+          const Icon(Icons.star_border, color: Colors.amber, size: 16),
+      ],
+    );
+  }
+}
+
+class GoogleReviews extends StatefulWidget {
+  final String restaurantId;
+  const GoogleReviews({Key? key, required this.restaurantId}) : super(key: key);
+
+  @override
+  State<GoogleReviews> createState() => _GoogleReviewsState();
+}
+
+class _GoogleReviewsState extends State<GoogleReviews> {
+  final String _currentUserId = 'testUserId';
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream:
+          FirebaseFirestore.instance
+              .collection('restaurants')
+              .doc(widget.restaurantId)
+              .collection('reviews')
+              .orderBy('createdAt', descending: true)
+              .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return const Padding(
             padding: EdgeInsets.all(16),
-            child: Text('Error loading user reviews.'),
+            child: Text(
+              'Error loading Google reviews.',
+              style: TextStyle(color: Colors.white70),
+            ),
           );
         }
         if (!snapshot.hasData) {
@@ -538,152 +893,155 @@ class _ReviewsListState extends State<ReviewsList> {
           children:
               docs.map((doc) {
                 final review = doc.data() as Map<String, dynamic>;
-                final docId = doc.id;
-                final userId = review['userId'] ?? '';
-                final rating = review['rating']?.toString() ?? '-';
-                final text = review['text'] ?? '';
-                final dishes = review['dishes'] as List<dynamic>? ?? [];
-                return FutureBuilder<String>(
-                  future: _getUsername(userId),
-                  builder: (context, nameSnap) {
-                    final username = nameSnap.data ?? 'Anonymous';
-                    final expanded = _expanded[docId] ?? false;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                final author = review['authorName'] ?? 'Google User';
+                final reviewText = review['text'] ?? '';
+                final reviewRating = (review['rating'] ?? 0).toDouble();
+                final upvotes = List<String>.from(review['upvotes'] ?? []);
+                final downvotes = List<String>.from(review['downvotes'] ?? []);
+                final upCount = upvotes.length;
+                final downCount = downvotes.length;
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 20,
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  title: Text(
-                                    '$username - Rating: $rating',
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  subtitle: Text(
-                                    text,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                    ),
-                                  ),
+                              Text(
+                                author,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              IconButton(
-                                icon: Icon(
-                                  expanded
-                                      ? Icons.expand_less
-                                      : Icons.expand_more,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _expanded[docId] = !expanded;
-                                  });
-                                },
-                              ),
+                              const SizedBox(height: 4),
+                              RatingBar(rating: reviewRating),
                             ],
                           ),
-                          if (expanded)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 16, top: 4),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children:
-                                    dishes.map((dishData) {
-                                      final dish =
-                                          dishData as Map<String, dynamic>;
-                                      final dishName = dish['name'] ?? '';
-                                      final tags = [
-                                        ...List<String>.from(
-                                          dish['taste'] ?? [],
-                                        ),
-                                        ...List<String>.from(
-                                          dish['ingredients'] ?? [],
-                                        ),
-                                        ...List<String>.from(
-                                          dish['dietary'] ?? [],
-                                        ),
-                                      ];
-                                      return Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            dishName,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          Wrap(
-                                            spacing: 6,
-                                            runSpacing: 4,
-                                            children:
-                                                tags.map((tag) {
-                                                  final isTaste =
-                                                      (dish['taste'] ?? [])
-                                                          .contains(tag);
-                                                  final isIngredient =
-                                                      (dish['ingredients'] ??
-                                                              [])
-                                                          .contains(tag);
-                                                  final isDietary =
-                                                      (dish['dietary'] ?? [])
-                                                          .contains(tag);
-                                                  Color bg = Colors.grey;
-                                                  if (isTaste) {
-                                                    bg = const Color(
-                                                      0xFFFBAF25,
-                                                    );
-                                                  } else if (isIngredient) {
-                                                    bg = const Color(
-                                                      0xFFC8E0CA,
-                                                    );
-                                                  } else if (isDietary) {
-                                                    bg = const Color.fromARGB(
-                                                      255,
-                                                      29,
-                                                      125,
-                                                      125,
-                                                    );
-                                                  }
-                                                  return Chip(
-                                                    label: Text(
-                                                      tag,
-                                                      style: const TextStyle(
-                                                        fontSize: 12,
-                                                        color: Colors.black,
-                                                      ),
-                                                    ),
-                                                    backgroundColor: bg,
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            20,
-                                                          ),
-                                                    ),
-                                                    visualDensity:
-                                                        VisualDensity.compact,
-                                                  );
-                                                }).toList(),
-                                          ),
-                                        ],
-                                      );
-                                    }).toList(),
-                              ),
-                            ),
                         ],
                       ),
-                    );
-                  },
+                      const SizedBox(height: 8),
+                      Text(
+                        reviewText,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.thumb_up_alt_outlined,
+                              color:
+                                  upvotes.contains(_currentUserId)
+                                      ? Colors.blue
+                                      : Colors.grey,
+                            ),
+                            onPressed: () async {
+                              await _toggleUpvoteDownvote(
+                                doc.reference,
+                                upvotes,
+                                downvotes,
+                                isUpvote: true,
+                              );
+                            },
+                          ),
+                          Text(
+                            '$upCount',
+                            style: const TextStyle(color: Colors.black54),
+                          ),
+                          const SizedBox(width: 16),
+                          IconButton(
+                            icon: Icon(
+                              Icons.thumb_down_alt_outlined,
+                              color:
+                                  downvotes.contains(_currentUserId)
+                                      ? Colors.red
+                                      : Colors.grey,
+                            ),
+                            onPressed: () async {
+                              await _toggleUpvoteDownvote(
+                                doc.reference,
+                                upvotes,
+                                downvotes,
+                                isUpvote: false,
+                              );
+                            },
+                          ),
+                          Text(
+                            '$downCount',
+                            style: const TextStyle(color: Colors.black54),
+                          ),
+                        ],
+                      ),
+                      // *** REVIEW DATE ***
+                      if (review['createdAt'] != null)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              (review['createdAt'] as Timestamp)
+                                  .toDate()
+                                  .toLocal()
+                                  .toString()
+                                  .split(' ')
+                                  .first,
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 );
               }).toList(),
         );
       },
     );
+  }
+
+  Future<void> _toggleUpvoteDownvote(
+    DocumentReference reviewRef,
+    List<String> upvotes,
+    List<String> downvotes, {
+    required bool isUpvote,
+  }) async {
+    if (isUpvote) {
+      if (upvotes.contains(_currentUserId)) {
+        upvotes.remove(_currentUserId);
+      } else {
+        upvotes.add(_currentUserId);
+        downvotes.remove(_currentUserId);
+      }
+    } else {
+      if (downvotes.contains(_currentUserId)) {
+        downvotes.remove(_currentUserId);
+      } else {
+        downvotes.add(_currentUserId);
+        upvotes.remove(_currentUserId);
+      }
+    }
+    await reviewRef.update({'upvotes': upvotes, 'downvotes': downvotes});
+    setState(() {});
   }
 }
