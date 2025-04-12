@@ -36,7 +36,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     'Vegetarian',
     'Halal',
     'Spicy',
-    'Organic',
   ];
 
   bool showAllergyOptions = false;
