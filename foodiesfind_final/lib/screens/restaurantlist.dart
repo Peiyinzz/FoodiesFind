@@ -15,12 +15,14 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
   String searchQuery = '';
   bool sortByRating = false;
   bool filterByRating = false;
+  bool sortByDistance = false;
 
   Position? currentPosition;
 
   @override
   void initState() {
     super.initState();
+    // example fallback position
     currentPosition = Position(
       latitude: 5.3564,
       longitude: 100.3015,
@@ -61,7 +63,7 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
           foregroundColor: Colors.white,
           leading: const BackButton(color: Colors.white),
           title: Padding(
-            padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+            padding: const EdgeInsets.symmetric(vertical: 10),
             child: Row(
               children: [
                 Expanded(
@@ -99,7 +101,7 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
                           top: Radius.circular(20),
                         ),
                       ),
-                      builder: (context) => _buildManageBottomSheet(),
+                      builder: (_) => _buildManageBottomSheet(),
                     );
                   },
                 ),
@@ -124,8 +126,17 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          List<QueryDocumentSnapshot> docs = snapshot.data!.docs;
+          // filter & sort
+          var docs = snapshot.data!.docs.toList();
 
+          // text filter
+          docs =
+              docs.where((doc) {
+                final name = (doc['name'] ?? '').toString().toLowerCase();
+                return name.contains(searchQuery);
+              }).toList();
+
+          // rating filter
           if (filterByRating) {
             docs =
                 docs
@@ -133,15 +144,33 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
                     .toList();
           }
 
-          docs =
-              docs.where((doc) {
-                final name = (doc['name'] ?? '').toString().toLowerCase();
-                return name.contains(searchQuery);
-              }).toList();
-
-          if (sortByRating) {
+          // sorting
+          if (sortByDistance) {
+            docs.sort((a, b) {
+              double da = 1e6, db = 1e6;
+              if (currentPosition != null && a['loc'] is GeoPoint) {
+                final geo = a['loc'] as GeoPoint;
+                da = calculateDistance(
+                  currentPosition!.latitude,
+                  currentPosition!.longitude,
+                  geo.latitude,
+                  geo.longitude,
+                );
+              }
+              if (currentPosition != null && b['loc'] is GeoPoint) {
+                final geo = b['loc'] as GeoPoint;
+                db = calculateDistance(
+                  currentPosition!.latitude,
+                  currentPosition!.longitude,
+                  geo.latitude,
+                  geo.longitude,
+                );
+              }
+              return da.compareTo(db);
+            });
+          } else if (sortByRating) {
             docs.sort(
-              (a, b) => ((b['rating'] ?? 0).toDouble()).compareTo(
+              (a, b) => (b['rating'] ?? 0).toDouble().compareTo(
                 (a['rating'] ?? 0).toDouble(),
               ),
             );
@@ -163,18 +192,17 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
           }
 
           return ListView.separated(
-            itemCount: docs.length,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            separatorBuilder: (context, index) => const SizedBox(height: 24),
+            itemCount: docs.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 24),
             itemBuilder: (context, index) {
               final doc = docs[index];
               final data = doc.data() as Map<String, dynamic>;
-
               final name = data['name'] ?? 'Unnamed';
               final rating = data['rating']?.toString() ?? '0.0';
 
               double? distanceKm;
-              if (data['loc'] != null && data['loc'] is GeoPoint) {
+              if (data['loc'] is GeoPoint && currentPosition != null) {
                 final geo = data['loc'] as GeoPoint;
                 distanceKm = calculateDistance(
                   currentPosition!.latitude,
@@ -185,15 +213,14 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
               }
 
               return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (_) => RestaurantDetailPage(restaurantId: doc.id),
+                onTap:
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (_) => RestaurantDetailPage(restaurantId: doc.id),
+                      ),
                     ),
-                  );
-                },
                 child: Row(
                   children: [
                     ClipRRect(
@@ -246,9 +273,8 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
                                     .doc(doc.id)
                                     .collection('reviews')
                                     .get(),
-                            builder: (context, reviewSnapshot) {
-                              final reviewCount =
-                                  reviewSnapshot.data?.docs.length ?? 0;
+                            builder: (ctx, revSnap) {
+                              final count = revSnap.data?.docs.length ?? 0;
                               return Row(
                                 children: [
                                   const Icon(
@@ -258,7 +284,7 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '$rating ($reviewCount reviews)',
+                                    '$rating ($count reviews)',
                                     style: const TextStyle(
                                       color: Colors.white70,
                                       fontSize: 13,
@@ -288,7 +314,7 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
-            'Filters',
+            'Filters & Sort',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -303,18 +329,40 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
               style: TextStyle(color: Colors.white),
             ),
             onTap: () {
-              setState(() => sortByRating = false);
+              setState(() {
+                sortByDistance = false;
+                sortByRating = false;
+              });
               Navigator.pop(context);
             },
           ),
           ListTile(
             leading: const Icon(Icons.star, color: Colors.white),
             title: const Text(
-              'Sort by Rating (High to Low)',
+              'Sort by Rating (High→Low)',
               style: TextStyle(color: Colors.white),
             ),
             onTap: () {
-              setState(() => sortByRating = true);
+              setState(() {
+                sortByDistance = false;
+                sortByRating = true;
+              });
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              sortByDistance ? Icons.check_box : Icons.check_box_outline_blank,
+              color: Colors.white,
+            ),
+            title: const Text(
+              'Sort by Distance (Nearest First)',
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () {
+              setState(() {
+                sortByDistance = !sortByDistance;
+              });
               Navigator.pop(context);
             },
           ),
