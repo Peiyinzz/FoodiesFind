@@ -10,7 +10,9 @@ import '../services/google_places_service.dart';
 import '../config.dart';
 
 class NearbyMapScreen extends StatefulWidget {
-  const NearbyMapScreen({Key? key}) : super(key: key);
+  final String? restaurantId; // Optional parameter
+
+  const NearbyMapScreen({Key? key, this.restaurantId}) : super(key: key);
 
   @override
   State<NearbyMapScreen> createState() => _NearbyMapScreenState();
@@ -32,16 +34,19 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
   List<String> _suggestions = [];
   DocumentSnapshot? _selectedRestaurant;
 
-  // Polylines for drawing the route on the map
+  // Polylines for drawing the route on the map (if needed)
   Map<PolylineId, Polyline> _polylines = {};
 
-  // Track whether we're currently in "directions mode"
+  // Track whether we're in directions mode
   bool _isDirectionsMode = false;
 
   // To restore the original markers after exiting directions mode
   Set<Marker>? _markersBeforeDirections;
 
-  // Travel info from the Directions API
+  // Temporary storage for the restaurant popup when transitioning to directions mode.
+  DocumentSnapshot? _tempRestaurant;
+
+  // Travel info from the Directions API (used by the "Show Directions" feature)
   String? _travelDistanceText; // e.g. "9.5 km"
   String? _travelDurationText; // e.g. "14 min"
   String? _etaText; // e.g. "03:19"
@@ -50,7 +55,13 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
   void initState() {
     super.initState();
     _placesService = GooglePlacesService(googleApiKey);
-    _initializeLocation();
+    _initializeLocation().then((_) {
+      // If a restaurantId was passed, fetch that restaurant's document and add its marker.
+      if (widget.restaurantId != null && widget.restaurantId!.isNotEmpty) {
+        _fetchRestaurantDocument(widget.restaurantId!);
+      }
+      // Optionally, you may load other markers later via "Search this area"
+    });
   }
 
   Future<void> _initializeLocation() async {
@@ -85,6 +96,47 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     }
   }
 
+  /// Fetches the restaurant document using the provided restaurantId.
+  /// If found, adds its marker, calculates distance, and moves the camera.
+  Future<void> _fetchRestaurantDocument(String restaurantId) async {
+    try {
+      final doc =
+          await FirebaseFirestore.instance
+              .collection('restaurants')
+              .doc(restaurantId)
+              .get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        if (data.containsKey('loc') && data['loc'] is GeoPoint) {
+          final geo = data['loc'] as GeoPoint;
+          final LatLng destination = LatLng(geo.latitude, geo.longitude);
+          setState(() {
+            _selectedRestaurant = doc;
+            _markers.add(
+              Marker(
+                markerId: MarkerId(restaurantId),
+                position: destination,
+                infoWindow: InfoWindow(title: data['name'] ?? 'Restaurant'),
+              ),
+            );
+            if (_currentLocation != null) {
+              double distanceKm = calculateDistance(
+                _currentLocation!.latitude!,
+                _currentLocation!.longitude!,
+                geo.latitude,
+                geo.longitude,
+              );
+              _distances[doc.id] = distanceKm;
+            }
+          });
+          _moveCameraTo(destination.latitude, destination.longitude);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching restaurant document: $e");
+    }
+  }
+
   Future<void> _loadRestaurantMarkers({bool onlyNearby = false}) async {
     final snapshot =
         await FirebaseFirestore.instance.collection('restaurants').get();
@@ -109,7 +161,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
           _distances[doc.id] = distanceKm;
         }
 
-        // Show markers only if within 5km if onlyNearby == true, otherwise show all
         if (!onlyNearby || (distanceKm != null && distanceKm < 5.0)) {
           markers.add(
             Marker(
@@ -121,7 +172,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                 setState(() {
                   _selectedRestaurant = doc;
                   _searchController.text = restaurantName;
-                  // If we were previously in directions mode, exit it
                   _exitDirectionsMode();
                 });
               },
@@ -163,7 +213,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
   Future<void> _searchRestaurantByName(String input) async {
     if (input.isEmpty) return;
 
-    // Auto-complete: if any suggestion starts with input, use that suggestion as the name
     String completedName = input;
     if (_suggestions.isNotEmpty) {
       final matchingSuggestion = _suggestions.firstWhere(
@@ -201,7 +250,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
           _distances[doc.id] = distanceKm;
         }
 
-        // Overwrite markers with just this location
         setState(() {
           _selectedRestaurant = doc;
           _markers = {
@@ -227,11 +275,15 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     }
   }
 
-  /// Fetch route details from the Directions API, parse distance & duration,
-  /// remove all other markers except destination, store original markers,
-  /// then show the directions overlay.
+  /// Fetch route details from the Directions API and show the directions overlay.
+  /// When "Show Directions" is tapped, store the current restaurant popup in _tempRestaurant
+  /// and then clear _selectedRestaurant so that the popup hides.
   Future<void> _showRouteToRestaurant(DocumentSnapshot restaurantDoc) async {
-    // Keep track of the existing markers so we can restore them
+    setState(() {
+      _tempRestaurant = _selectedRestaurant;
+      _selectedRestaurant = null; // Hide popup
+    });
+
     _markersBeforeDirections = Set.from(_markers);
 
     final data = restaurantDoc.data() as Map<String, dynamic>;
@@ -252,9 +304,8 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
       final jsonData = jsonDecode(response.body);
       if (jsonData['routes'] != null && jsonData['routes'].isNotEmpty) {
         final route = jsonData['routes'][0];
-        final leg = route['legs'][0]; // Usually the first leg is what we need
+        final leg = route['legs'][0];
 
-        // Extract polyline points
         final overviewPolyline = route['overview_polyline']['points'] as String;
         final polylinePoints = PolylinePoints().decodePolyline(
           overviewPolyline,
@@ -264,21 +315,15 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                 .map((point) => LatLng(point.latitude, point.longitude))
                 .toList();
 
-        // Parse travel distance & duration
-        final distanceText = leg['distance']['text'] as String; // e.g. "9.5 km"
-        final durationText = leg['duration']['text'] as String; // e.g. "14 min"
-        final durationValue =
-            leg['duration']['value'] as int; // e.g. 840 (seconds)
-        // Compute ETA = now + durationValue
+        final distanceText = leg['distance']['text'] as String;
+        final durationText = leg['duration']['text'] as String;
+        final durationValue = leg['duration']['value'] as int;
         final eta = DateTime.now().add(Duration(seconds: durationValue));
         final etaHour = eta.hour.toString().padLeft(2, '0');
         final etaMinute = eta.minute.toString().padLeft(2, '0');
-        final etaText = "$etaHour:$etaMinute"; // e.g. "03:19"
+        final etaText = "$etaHour:$etaMinute";
 
-        // Update the map with a single marker for the destination
-        // and a polyline showing the route
         setState(() {
-          // Clear existing polylines, then add the new route
           _polylines.clear();
           final polylineId = PolylineId("route");
           _polylines[polylineId] = Polyline(
@@ -288,14 +333,11 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
             points: routeCoords,
           );
 
-          // Show only the destination marker
           _markers = {
             Marker(
               markerId: MarkerId(restaurantDoc.id),
               position: destination,
               onTap: () {
-                // If user taps the marker, we consider that
-                // "selecting" the restaurant again
                 setState(() {
                   _selectedRestaurant = restaurantDoc;
                   _searchController.text = data['name'] ?? '';
@@ -305,32 +347,32 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
             ),
           };
 
-          // Set the travel info
           _travelDistanceText = distanceText;
           _travelDurationText = durationText;
           _etaText = etaText;
-
-          // Switch to directions mode
           _isDirectionsMode = true;
         });
       }
     }
   }
 
-  /// Exit directions mode and restore original markers & polylines
+  /// Exit directions mode and restore original markers & re-display restaurant popup.
   void _exitDirectionsMode() {
     setState(() {
       _isDirectionsMode = false;
       _polylines.clear();
-      // Restore original markers if we have them
       if (_markersBeforeDirections != null) {
         _markers = _markersBeforeDirections!;
         _markersBeforeDirections = null;
       }
-      // Clear travel info
       _travelDistanceText = null;
       _travelDurationText = null;
       _etaText = null;
+      // Restore the restaurant popup if it was stored
+      if (_tempRestaurant != null) {
+        _selectedRestaurant = _tempRestaurant;
+        _tempRestaurant = null;
+      }
     });
   }
 
@@ -358,12 +400,12 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                     markers: _markers,
                     polylines: Set<Polyline>.of(_polylines.values),
                     onMapCreated: (controller) => _mapController = controller,
-                    onTap:
-                        (_) => setState(() {
-                          _selectedRestaurant = null;
-                          // If the user taps elsewhere, also exit directions mode
-                          _exitDirectionsMode();
-                        }),
+                    onTap: (_) {
+                      setState(() {
+                        _selectedRestaurant = null;
+                        _exitDirectionsMode();
+                      });
+                    },
                   ),
 
                   // Positioned search UI
@@ -385,18 +427,18 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                     ),
                   ),
 
-                  // If we're not in directions mode, show the bottom info popup
+                  // Bottom info popup (only if not in directions mode)
                   if (!_isDirectionsMode && _selectedRestaurant != null)
                     _buildBottomInfoPopup(_selectedRestaurant!),
 
-                  // If we ARE in directions mode, show the directions overlay
+                  // Directions overlay (if in directions mode)
                   if (_isDirectionsMode) _buildDirectionsOverlay(),
                 ],
               ),
     );
   }
 
-  /// This is the original bottom info popup for the selected restaurant
+  /// Bottom info popup for the selected restaurant.
   Widget _buildBottomInfoPopup(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     final name = data['name'] ?? 'Unnamed';
@@ -462,10 +504,8 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     );
   }
 
-  /// This overlay appears at the bottom when in directions mode.
-  /// It shows time taken, distance, ETA, and an "Exit" button.
+  /// Directions overlay shown when in directions mode.
   Widget _buildDirectionsOverlay() {
-    // Provide default strings if they are null
     final duration = _travelDurationText ?? '';
     final distance = _travelDistanceText ?? '';
     final eta = _etaText ?? '';
@@ -480,11 +520,9 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // First row: big duration on the left, exit button on the right
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Duration in big text, e.g. "14 min"
                 Text(
                   duration,
                   style: const TextStyle(
@@ -493,7 +531,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                // The exit button (red circle with X)
                 Container(
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
@@ -507,7 +544,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            // Second row: distance, "middle dot", ETA, plus an optional icon
             Row(
               children: [
                 Expanded(
@@ -524,7 +560,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     );
   }
 
-  // The text field for searching
+  /// Search bar at the top.
   Widget _buildSearchBar() {
     return Row(
       children: [
@@ -569,7 +605,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     );
   }
 
-  // The suggestions dropdown
+  /// Suggestions dropdown below the search bar.
   Widget _buildSuggestions() {
     final itemCount = _suggestions.length;
     final maxHeight = (itemCount * 50.0).clamp(50.0, 300.0);
@@ -613,7 +649,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     );
   }
 
-  // The "Search this area" button
+  /// "Search this area" button.
   Widget _buildSearchAreaButton() {
     return Container(
       decoration: BoxDecoration(
@@ -636,7 +672,7 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     );
   }
 
-  // Called whenever text in the search bar changes
+  /// Called when the search field changes.
   void _onTextChanged(String input) async {
     if (input.isEmpty) {
       setState(() => _suggestions = []);

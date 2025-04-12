@@ -67,6 +67,7 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
                 Expanded(
                   child: TextField(
                     style: const TextStyle(color: Colors.white),
+                    cursorColor: Colors.white70,
                     decoration: InputDecoration(
                       hintText: 'Search',
                       hintStyle: const TextStyle(color: Colors.white54),

@@ -13,6 +13,7 @@ import 'package:foodiesfind_final/screens/reviews_history.dart';
 import 'package:foodiesfind_final/screens/manage_menu.dart';
 import 'package:foodiesfind_final/screens/manage_item.dart';
 import 'package:foodiesfind_final/screens/manage_category.dart';
+import 'package:foodiesfind_final/screens/near_me.dart';
 import 'screens/homepage.dart';
 import 'screens/restaurantlist.dart';
 import 'theme.dart';
@@ -154,6 +155,13 @@ class MyApp extends StatelessWidget {
                     restaurantId: args['restaurantId'],
                     categoryName: args['categoryName'],
                   ),
+            );
+
+          case '/nearMe':
+            final args = settings.arguments as Map<String, dynamic>? ?? {};
+            final restaurantId = args['restaurantId'] ?? '';
+            return MaterialPageRoute(
+              builder: (_) => NearbyMapScreen(restaurantId: restaurantId),
             );
         }
 
