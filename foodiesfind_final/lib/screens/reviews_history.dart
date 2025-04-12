@@ -29,12 +29,14 @@ class ReviewHistoryPage extends StatelessWidget {
                   .collection('restaurants')
                   .doc(restaurantId)
                   .get();
-          restaurantName = restaurantDoc.data()?['name'] ?? 'Unknown';
+          restaurantName =
+              restaurantDoc.data()?['name']?.toString() ?? 'Unknown';
         }
 
         return {
           'restaurantName': restaurantName,
           'text': data['text'] ?? '',
+          'rating': (data['rating'] as num?)?.toDouble() ?? 0.0,
           'createdAt': data['createdAt'],
         };
       }),
@@ -58,12 +60,9 @@ class ReviewHistoryPage extends StatelessWidget {
           'My Review History',
           style: TextStyle(color: Colors.white),
         ),
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ), // ← back icon color
+        iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
-
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: fetchUserReviews(),
         builder: (context, snapshot) {
@@ -88,8 +87,9 @@ class ReviewHistoryPage extends StatelessWidget {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final review = reviews[index];
-              final restaurantName = review['restaurantName'];
-              final reviewText = review['text'];
+              final restaurantName = review['restaurantName'] as String;
+              final reviewText = review['text'] as String;
+              final rating = review['rating'] as double;
               final timestamp = review['createdAt'] as Timestamp?;
 
               return Container(
@@ -101,13 +101,42 @@ class ReviewHistoryPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      restaurantName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                    // Name + stars row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          restaurantName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Row(
+                          children: List.generate(5, (i) {
+                            if (i < rating.floor()) {
+                              return const Icon(
+                                Icons.star,
+                                size: 16,
+                                color: Colors.amber,
+                              );
+                            } else if (i < rating) {
+                              return const Icon(
+                                Icons.star_half,
+                                size: 16,
+                                color: Colors.amber,
+                              );
+                            } else {
+                              return const Icon(
+                                Icons.star_border,
+                                size: 16,
+                                color: Colors.amber,
+                              );
+                            }
+                          }),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 6),
                     if (timestamp != null)
