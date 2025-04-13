@@ -124,39 +124,39 @@ class _SignInPageState extends State<SignInPage> {
                 ],
               ),
               const SizedBox(height: 16),
-              Row(
-                children: const [
-                  Expanded(child: Divider(color: Colors.white54, thickness: 1)),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text('or', style: TextStyle(color: Colors.white70)),
-                  ),
-                  Expanded(child: Divider(color: Colors.white54, thickness: 1)),
-                ],
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: handle Google login
-                  },
-                  icon: Image.asset(
-                    'assets/images/google_logo.png',
-                    width: 20,
-                    height: 20,
-                  ),
-                  label: const Text(
-                    'Continue with Google',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ),
+              // Row(
+              //   children: const [
+              //     Expanded(child: Divider(color: Colors.white54, thickness: 1)),
+              //     Padding(
+              //       padding: EdgeInsets.symmetric(horizontal: 8.0),
+              //       child: Text('or', style: TextStyle(color: Colors.white70)),
+              //     ),
+              //     Expanded(child: Divider(color: Colors.white54, thickness: 1)),
+              //   ],
+              // ),
+              // const SizedBox(height: 16),
+              // SizedBox(
+              //   width: double.infinity,
+              //   child: OutlinedButton.icon(
+              //     onPressed: () {
+              //       // TODO: handle Google login
+              //     },
+              //     icon: Image.asset(
+              //       'assets/images/google_logo.png',
+              //       width: 20,
+              //       height: 20,
+              //     ),
+              //     label: const Text(
+              //       'Continue with Google',
+              //       style: TextStyle(color: Colors.white),
+              //     ),
+              //     style: OutlinedButton.styleFrom(
+              //       foregroundColor: Colors.white,
+              //       side: const BorderSide(color: Colors.white),
+              //       padding: const EdgeInsets.symmetric(vertical: 14),
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),
