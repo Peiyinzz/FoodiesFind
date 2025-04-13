@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Updated Profile Row with Review History Icon
+              // Profile Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -68,7 +68,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Row(
                     children: [
-                      // Review History Icon
                       IconButton(
                         icon: const Icon(Icons.history),
                         color: Colors.white,
@@ -76,9 +75,8 @@ class _HomePageState extends State<HomePage> {
                         onPressed: () {
                           Navigator.pushNamed(context, '/reviewsHistory');
                         },
-                        tooltip: 'My Reviews',
                       ),
-                      // Notification Icon
+                      const SizedBox(width: 8),
                       const Icon(
                         Icons.notifications_none,
                         color: Colors.white,
@@ -124,13 +122,8 @@ class _HomePageState extends State<HomePage> {
                       const Icon(Icons.search, color: Colors.grey),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: GestureDetector(
-                          onTap:
-                              () =>
-                                  Navigator.pushNamed(context, '/restaurants'),
-                          child: TypewriterSearchText(
-                            text: 'Search restaurants, dishes...',
-                          ),
+                        child: TypewriterSearchText(
+                          text: 'Search restaurants, dishes...',
                         ),
                       ),
                     ],
@@ -139,13 +132,12 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 30),
 
-              // Top Feature Banners (Image-backed)
+              // Feature Banners
               Row(
                 children: [
                   Expanded(
                     child: _ImageFeatureCard(
                       title: 'Near Me',
-                      subtitle: '',
                       icon: Icons.location_pin,
                       backgroundImage:
                           'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Others%2FNearMe.jpg?alt=media&token=2ec650c1-8347-42dd-889c-88b38c9d7a68',
@@ -162,7 +154,6 @@ class _HomePageState extends State<HomePage> {
                   Expanded(
                     child: _ImageFeatureCard(
                       title: 'Featured Restaurants',
-                      subtitle: '',
                       icon: Icons.star,
                       backgroundImage:
                           'https://images.unsplash.com/photo-1600891964599-f61ba0e24092',
@@ -173,6 +164,8 @@ class _HomePageState extends State<HomePage> {
               ),
 
               const SizedBox(height: 30),
+
+              // Top Picks For You
               const Text(
                 'Top Picks For You',
                 style: TextStyle(
@@ -183,30 +176,32 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 18),
               SizedBox(
-                height: 130,
+                height: 120,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  children: [
-                    _RecommendedItem(
+                  children: const [
+                    _FillCard(
                       imageUrl:
                           'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Owned%20food%20images%2FInheritTasteCrepeCake.jpg?alt=media&token=1337b4fc-e3bd-4641-ae6b-57a15782d110',
-                      title: 'Kenny Hills Bakery',
-                      subtitle: 'Mille Crepe',
-                      tag: 'Halal',
+                      line1: 'Kenny Hills Bakery',
+                      line2: 'Mille Crepe',
+                      line3: 'Halal · Dessert',
                     ),
-                    const SizedBox(width: 12),
-                    _RecommendedItem(
+                    SizedBox(width: 12),
+                    _FillCard(
                       imageUrl:
                           'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Owned%20food%20images%2FSalmonMentaiAburiMaki.webp?alt=media&token=286886bd-2a9a-4997-a77c-52d112f31d7b',
-                      title: 'Sushi Mentai',
-                      subtitle: 'Vegan Delights',
-                      tag: 'Light',
+                      line1: 'Sushi Mentai',
+                      line2: 'Mentai Aburi Maki',
+                      line3: 'Light · Seafood',
                     ),
                   ],
                 ),
               ),
 
               const SizedBox(height: 30),
+
+              // Popular Dishes This Week
               const Text(
                 'Popular Dishes This Week',
                 style: TextStyle(
@@ -217,24 +212,24 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 18),
               SizedBox(
-                height: 130,
+                height: 120,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  children: [
-                    _RecommendedItem(
+                  children: const [
+                    _FillCard(
                       imageUrl:
                           'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Owned%20food%20images%2FPastaCarbonara.jpg?alt=media&token=dc5a7a68-7d83-4068-81a0-77ce91f65b8e',
-                      title: 'Carbonara',
-                      subtitle: '43 reviews',
-                      tag: 'Pasta',
+                      line1: 'Trattoria Roma',
+                      line2: 'Carbonara',
+                      line3: '43 reviews',
                     ),
-                    const SizedBox(width: 12),
-                    _RecommendedItem(
+                    SizedBox(width: 12),
+                    _FillCard(
                       imageUrl:
                           'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Owned%20food%20images%2FTiramisuCake.jpg?alt=media&token=60eba851-54c4-4e1c-aec3-36a7c2992521',
-                      title: 'Tiramisu Cake',
-                      subtitle: '24 reviews',
-                      tag: 'Dessert',
+                      line1: 'Dolce & Co.',
+                      line2: 'Tiramisu Cake',
+                      line3: '24 reviews',
                     ),
                   ],
                 ),
@@ -247,131 +242,14 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class _CategoryCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  const _CategoryCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1B3A3B),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(icon, color: Colors.teal.shade700),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(subtitle, style: const TextStyle(color: Colors.white60)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RecommendedItem extends StatelessWidget {
-  final String imageUrl;
-  final String title;
-  final String subtitle;
-  final String tag;
-
-  const _RecommendedItem({
-    required this.imageUrl,
-    required this.title,
-    required this.subtitle,
-    required this.tag,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 240,
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1B3A3B),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              imageUrl,
-              width: 60,
-              height: 60,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  tag.toUpperCase(),
-                  style: const TextStyle(
-                    color: Color(0xFFC8E0CA),
-                    fontSize: 12,
-                  ),
-                ),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ImageFeatureCard extends StatelessWidget {
   final String title;
-  final String subtitle;
   final IconData icon;
   final String backgroundImage;
   final VoidCallback? onTap;
 
   const _ImageFeatureCard({
     required this.title,
-    required this.subtitle,
     required this.icon,
     required this.backgroundImage,
     this.onTap,
@@ -382,7 +260,7 @@ class _ImageFeatureCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        height: 90, // ✅ Shorter height
+        height: 90,
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
@@ -417,6 +295,79 @@ class _ImageFeatureCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Fills entire card height with image on left and text on right.
+class _FillCard extends StatelessWidget {
+  final String imageUrl;
+  final String line1;
+  final String line2;
+  final String line3;
+
+  const _FillCard({
+    required this.imageUrl,
+    required this.line1,
+    required this.line2,
+    required this.line3,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 260,
+      height: 160,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1B3A3B),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          // Full-height image
+          ClipRRect(
+            borderRadius: const BorderRadius.horizontal(
+              left: Radius.circular(16),
+            ),
+            child: Image.network(
+              imageUrl,
+              width: 100,
+              height: 160,
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Text column
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    line1,
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    line2,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    line3,
+                    style: const TextStyle(color: Colors.white60, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
