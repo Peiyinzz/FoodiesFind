@@ -27,7 +27,7 @@ Future<void> uploadMenuItems(String restaurantId) async {
       'description': item['description'],
       'price': item['price'],
       'tags': item['tags'] ?? [],
-      // optional but keeping it consistent
+      'imageUrl': item['imageUrl'],
       'createdAt': FieldValue.serverTimestamp(),
     });
   }

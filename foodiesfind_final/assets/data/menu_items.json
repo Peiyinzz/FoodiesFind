@@ -1,387 +1,492 @@
 [
-    {
-      "category": "Soup",
-      "name": "Tangy Tomato",
-      "description": "Pomodoro, Garlic, Onion, Cream, Served with Signature Cheese Sandwich",
-      "price": 12.9,
-      "tags": []
-    },
-    {
-      "category": "Soup",
-      "name": "Truffle Mushroom",
-      "description": "Seasonal Mushroom, Onion, Cream, White Truffle Oil, Served with Signature Cheese Sandwich",
-      "price": 12.9,
-      "tags": []
-    },
-    {
-      "category": "Salad",
-      "name": "Anchovies Caesar",
-      "description": "Romaine, Crouton, Bacons, Anchovies Caesar Dressing, Grated Parmesan",
-      "price": 12.9,
-      "tags": []
-    },
-    {
-      "category": "Salad",
-      "name": "Berries Rojak",
-      "description": "Strawberry, Blueberry, Walnut, You Tiao, Rojak Mayo Dressing, Sesame Seed, Greens",
-      "price": 12.9,
-      "tags": []
-    },
-    {
-      "category": "All-Day Brunch",
-      "name": "Croque Madame",
-      "description": "French Toast, Chicken Ham, Bacon, Cheddar Cheese, Sunny Side Up, Greens",
-      "price": 22.9,
-      "tags": []
-    },
-    {
-      "category": "All-Day Brunch",
-      "name": "CLTA Wrap",
-      "description": "Sous Vide Chicken Breast, Lettuce, Tomato, Avocado, Tortilla, Sesame Yuzu Dressing, Shoestring Fries",
-      "price": 22.9,
-      "tags": []
-    },
-    {
-      "category": "All-Day Brunch",
-      "name": "Curried Shakshuka",
-      "description": "Minced Pork, Chicken Onion Sausage, Onsen Egg, Japanese Tomato Curry, Grated Parmesan, Pain Au Lait",
-      "price": 22.9,
-      "tags": []
-    },
-    {
-      "category": "All-Day Brunch",
-      "name": "Classic Breakfast",
-      "description": "Scrambled Egg, Chicken Onion Sausage, Bacon, Tater Tots, Portobello, Pain Au Lait, Greens",
-      "price": 22.9,
-      "tags": []
-    },
-    {
-      "category": "Spaghettini",
-      "name": "Aglio E Olio",
-      "description": "Garlic, Olive Oil, Red Chili, White Truffle Oil",
-      "price": 18.9,
-      "tags": []
-    },
-    {
-      "category": "Spaghettini",
-      "name": "Alfredo Mushroom",
-      "description": "Seasonal Mushroom, Cèpes Powder, Garlic, Cream, White Truffle Oil, Grated Parmesan",
-      "price": 18.9,
-      "tags": []
-    },
-    {
-      "category": "Spaghettini",
-      "name": "Pesto",
-      "description": "Sweet Basil, Nuts, Garlic, Grated Parmesan",
-      "price": 18.9,
-      "tags": []
-    },
-    {
-      "category": "Spaghettini",
-      "name": "Bacon Carbonara",
-      "description": "Bacon, Cream, Grated Parmesan, Egg Yolk (mixed with sauce)",
-      "price": 18.9,
-      "tags": []
-    },
-    {
-      "category": "Spaghettini",
-      "name": "Curry Roast Pork",
-      "description": "Roast Pork, Curry Cream, Onion, Curry Leaves",
-      "price": 18.9,
-      "tags": []
-    },
-    {
-      "category": "Spaghettini",
-      "name": "Tom Yum-Ko",
-      "description": "Hotate Scallop, Minced Shrimp, Onion, Tom Yum Cream, Ginger Flower, Tobiko",
-      "price": 18.9,
-      "tags": []
-    },
-    {
-      "category": "Donburi",
-      "name": "Hainanese Chicken Katsu",
-      "description": "Breaded Chicken Chop, Onion Tamago, Hainanese Gravy, Japanese Rice",
-      "price": 17.9,
-      "tags": []
-    },
-    {
-      "category": "Donburi",
-      "name": "Nasi Kandar",
-      "description": "Lamb Shoulder Skewer, Okra, Onsen Egg, Curry Banjir, Japanese Rice",
-      "price": 17.9,
-      "tags": []
-    },
-    {
-      "category": "Donburi",
-      "name": "Hambāgu Rice",
-      "description": "Homemade Pork Patty, Onion Tamago, Broccoli, Gravy, Japanese Rice",
-      "price": 17.9,
-      "tags": []
-    },
-    {
-      "category": "Donburi",
-      "name": "Sam Rot Siakap",
-      "description": "This item contains alcohol. Beer Battered Barramundi, Onion Tamago, Thai Three-Flavor Sauce, French Bean, Japanese Rice",
-      "price": 17.9,
-      "tags": []
-    },
-    {
-      "category": "Donburi",
-      "name": "Unagi Tendon",
-      "description": "Unagi Tempura, Okra, Carrot, Onsen Egg, Japanese Rice",
-      "price": 17.9,
-      "tags": []
-    },
-    {
-      "category": "Donburi",
-      "name": "Salmon Nanban",
-      "description": "Norwegian Salmon, Onsen Egg, Furikake, Tartare Sauce, Tobiko, Japanese Rice",
-      "price": 17.9,
-      "tags": []
-    },
-    {
-      "category": "Mains",
-      "name": "Seafood Stew",
-      "description": "Tiger Prawn, Clams, Squid, Hotate Scallop, Pomodoro, White Wine, White Truffle Oil",
-      "price": 23.9,
-      "tags": []
-    },
-    {
-      "category": "Mains",
-      "name": "Halibut & Chips",
-      "description": "This item contains alcohol. Beer Battered Halibut, Shoestring Fries, Greens, Capers Tartare Sauce",
-      "price": 23.9,
-      "tags": []
-    },
-    {
-      "category": "Mains",
-      "name": "Gochujang Parmigiana",
-      "description": "Bread Crumbs Chicken Chop, Gochujang Sauce, Mozzarella Cheese, Shoestring Fries, Greens",
-      "price": 23.9,
-      "tags": []
-    },
-    {
-      "category": "Mains",
-      "name": "Guinness Pork Belly",
-      "description": "Braised Pork Belly, Sweet Potato Mash, Guinness, Cherry Tomato, Broccoli, Onion",
-      "price": 23.9,
-      "tags": []
-    },
-    {
-      "category": "Taco",
-      "name": "Satay Chicken Taco",
-      "description": "Grilled Chicken, Ginger Flower, Satay Sauce, Tomato Salsa, Lettuce, Cilantro, Lime",
-      "price": 18.9,
-      "tags": []
-    },
-    {
-      "category": "Taco",
-      "name": "Wasabi Prawn Taco",
-      "description": "Crispy Prawn, Tobiko, Honey Wasabi Mayo, Tomato Salsa, Lettuce, Cilantro, Lime",
-      "price": 18.9,
-      "tags": []
-    },
-    {
-      "category": "Taco",
-      "name": "Sambal Roast Pork Taco",
-      "description": "Roast Pork, Onion, Homemade Sambal, Tomato Salsa, Lettuce, Cilantro, Lime",
-      "price": 18.9,
-      "tags": []
-    },
-    {
-      "category": "Taco",
-      "name": "Unagi Tempura Taco",
-      "description": "Crispy Nori Unagi, Katsuobushi, Kabayaki Sauce, Tomato Salsa, Lettuce, Cilantro, Lime",
-      "price": 18.9,
-      "tags": []
-    },
-    {
-      "category": "Taco",
-      "name": "Crispy Portobello Taco",
-      "description": "This item contains alcohol. Beer Battered Portobello, Anchovies Mayo, Tomato Salsa, Lettuce, Cilantro, Lime",
-      "price": 18.9,
-      "tags": []
-    },
-    {
-      "category": "Sharing",
-      "name": "Tater Tots",
-      "description": "Mini Hash Browns, Creamy Spices Sauce",
-      "price": 28,
-      "tags": []
-    },
-    {
-      "category": "Sharing",
-      "name": "Truffle Fries",
-      "description": "Shoestring Fries, White Truffle Oil, Grated Parmesan",
-      "price": 28,
-      "tags": []
-    },
-    {
-      "category": "Sharing",
-      "name": "Gai Chi Pong",
-      "description": "6 pcs Drumette & Wingette, Curry Leaves, Homemade Sambal",
-      "price": 28,
-      "tags": []
-    },
-    {
-      "category": "Sharing",
-      "name": "Mala Fries",
-      "description": "Shoestring Fries, Mala Spices, Mala Mayo",
-      "price": 28,
-      "tags": []
-    },
-    {
-      "category": "Sharing",
-      "name": "Yuk Suk Suk",
-      "description": "Corn Ribs, Shichimi Togarashi, Grated Parmesan, Lime",
-      "price": 28,
-      "tags": []
-    },
-    {
-      "category": "Specialty Coffee",
-      "name": "Black",
-      "description": "Ristretto, H₂O",
-      "price": 9.9,
-      "tags": []
-    },
-    {
-      "category": "Specialty Coffee",
-      "name": "Honey Espresso Tonic",
-      "description": "Ristretto, Honey, Tonic Water",
-      "price": 9.9,
-      "tags": []
-    },
-    {
-      "category": "Specialty Coffee",
-      "name": "White",
-      "description": "Ristretto, Fresh Milk",
-      "price": 9.9,
-      "tags": []
-    },
-    {
-      "category": "Specialty Coffee",
-      "name": "Mocha",
-      "description": "Ristretto, Pure Cocoa, Fresh Milk",
-      "price": 9.9,
-      "tags": []
-    },
-    {
-      "category": "Specialty Coffee",
-      "name": "Cappuchai",
-      "description": "Ristretto, Fresh Milk, Chai Tea Spices, Cinnamon Powder",
-      "price": 9.9,
-      "tags": []
-    },
-    {
-      "category": "Classic",
-      "name": "Aloe Honey Lemon",
-      "description": "Lemon Juice, Honey Water, Aloe Vera",
-      "price": 8.9,
-      "tags": []
-    },
-    {
-      "category": "Classic",
-      "name": "Purple Sweet Potato Latte",
-      "description": "Chunky Purple Potato, Fresh Milk",
-      "price": 8.9,
-      "tags": []
-    },
-    {
-      "category": "Classic",
-      "name": "Australian Beetroot Latte",
-      "description": "Australia Organic Beetroot, Fresh Milk",
-      "price": 8.9,
-      "tags": []
-    },
-    {
-      "category": "Classic",
-      "name": "Cacao Barry Cocoa",
-      "description": "100% Pure Cocoa, Fresh Milk",
-      "price": 8.9,
-      "tags": []
-    },
-    {
-      "category": "Classic",
-      "name": "Niko Neko Houjicha Latte",
-      "description": "Niko Neko Tsubaki Houjicha, Fresh Milk",
-      "price": 8.9,
-      "tags": []
-    },
-    {
-      "category": "Classic",
-      "name": "Niko Neko Matcha Latte",
-      "description": "Niko Neko Uji Matcha, Fresh Milk",
-      "price": 8.9,
-      "tags": []
-    },
-    {
-      "category": "Fusion Inspired",
-      "name": "Grapefruit Yakult",
-      "description": "Fresh Grapefruit, Grapefruit Chunk, Yakult",
-      "price": 11.9,
-      "tags": []
-    },
-    {
-      "category": "Fusion Inspired",
-      "name": "Matcha Honey Lemon",
-      "description": "Uji Matcha, Honey, Lemon Juice, Tonic Water",
-      "price": 11.9,
-      "tags": []
-    },
-    {
-      "category": "Fusion Inspired",
-      "name": "Kiam Sui Ti",
-      "description": "Aloe Vera, Pomegranate, Orange Juice, Sea Salt Cream",
-      "price": 11.9,
-      "tags": []
-    },
-    {
-      "category": "Dalgona Series",
-      "name": "Dalgona Cocoa",
-      "description": "Chocolate, Dalgona Cream, Fresh Milk, Self-Made Honeycomb",
-      "price": 11.9,
-      "tags": []
-    },
-    {
-      "category": "Dalgona Series",
-      "name": "Dalgona Matcha",
-      "description": "Uji Matcha, Dalgona Cream, Fresh Milk, Self-Made Honeycomb",
-      "price": 11.9,
-      "tags": []
-    },
-    {
-      "category": "Dalgona Series",
-      "name": "Dalgona Coffee",
-      "description": "Ristretto, Dalgona Cream, Fresh Milk, Self-Made Honeycomb",
-      "price": 11.9,
-      "tags": []
-    },
-    {
-      "category": "Burger",
-      "name": "Mala Pork Burger",
-      "description": "Mala Pork Patty, Cheddar Cheese, Fu Chuk, Mala Bacon Chutney",
-      "price": 23.9,
-      "tags": []
-    },
-    {
-      "category": "Burger",
-      "name": "Pork Double Cheeseburger",
-      "description": "Homemade Pork Patty, Cheddar Cheese, Bacon, Tomato, Caramelised Onion",
-      "price": 23.9,
-      "tags": []
-    },
-    {
-      "category": "Burger",
-      "name": "Soy Garlic Chicken",
-      "description": "Fried Chicken Thigh, Sunny Side Up, Cheddar Cheese, Tomato, Soy Garlic, Curry Mayo",
-      "price": 23.9,
-      "tags": []
-    },
-    {
-      "category": "Burger",
-      "name": "Filet-O-Shrimp",
-      "description": "Homemade Shrimp Patty, Cheddar Cheese, Kyuri, Tartare Sauce",
-      "price": 23.9,
-      "tags": []
-    }
-  ]
+  {
+    "category": "Starters",
+    "name": "Mushroom Soup",
+    "price": 14.95,
+    "description": "House-Made Mushroom Soup.",
+    "imageUrl": ""
+  },
+  {
+    "category": "Starters",
+    "name": "Summer Salad",
+    "price": 24.7,
+    "description": "Mixed Greens + Avocado + Couscous + Qual Egg + House-made Dressing",
+    "imageUrl": ""
+  },
+  {
+    "category": "All Day Breakfast",
+    "name": "Grilled Chicken & Cheese Sandwich",
+    "price": 31.85,
+    "description": "Bread + Chicken Slice + Cheese + Salad + Fries",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100508105072968/detail/menueditor_item_234127b936e24cbbbdc784bc785a228f_1633421654177659831.webp"
+  },
+  {
+    "category": "All Day Breakfast",
+    "name": "Big Breakfast",
+    "price": 42.9,
+    "description": "Scrambled Eggs & Sauteed Mushroom on toast + sausage + chicken ham + curly fries + tater tots + corn on cob + salad",
+    "imageUrl": ""
+  },
+  {
+    "category": "All Day Breakfast",
+    "name": "Smoked Duck Quesadilla",
+    "price": 33.15,
+    "description": "Quesadilla Wrap + Smoked Duck Slices + Turkey Ham + Egg + Tomato + Thousand Island Sauce + Cheddar + Mozzarella + Tortilla Chips + Salad.",
+    "imageUrl": ""
+  },
+  {
+    "category": "All Day Breakfast",
+    "name": "Breakfast Turkey Quesadilla",
+    "price": 33.15,
+    "description": "Tortilla + turkey slice + egg + cheddar + mozzarella +tomato + cucumber + tortilla chips + mixed salad",
+    "imageUrl": ""
+  },
+  {
+    "category": "Mains : Pasta",
+    "name": "Seafood Aglio Olio",
+    "price": 37.7,
+    "description": "Squid Ink Pasta + Prawns + Squid + Chilli Flakes +Cherry Tomato +  Parmesan Cheese",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2024052207234651825/detail/menueditor_item_efd529952aed42dba6be6679634f7e91_1730363329739555728.webp"
+  },
+  {
+    "category": "Mains : Pasta",
+    "name": "Spaghetti Pad Kra Pao",
+    "price": 33.8,
+    "description": "Spaghetti + Thai style basil minced chicken stir-fry + egg",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100508324291594/detail/menueditor_item_5af95cef863a447da6abc1d17258266c_1633422757779236554.webp"
+  },
+  {
+    "category": "Mains : Pasta",
+    "name": "Scallop Aglio Olio",
+    "price": 36.4,
+    "description": "Spaghetti + Hotate Scallops + Small Prawns + Capsicum + Chilli Flakes + Parmesan Cheese",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100508351616316/detail/menueditor_item_61d1fb2a6b084e8eb335880d4b8b5b01_1633423618228990930.webp"
+  },
+  {
+    "category": "Mains : Pasta",
+    "name": "Mushroom Aglio Olio",
+    "price": 29.9,
+    "description": "Squid Ink Pasta + Mushrooms + Egg + Cherry Tomatoes + Chilli Flakes + Parmesan Cheese",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE20220623063425068084/detail/menueditor_item_dc305cf1b0e043d9a9cf7a88a6dda8f3_1732706455241332331.webp"
+  },
+  {
+    "category": "Mains : Pasta",
+    "name": "Smoked Duck Aglio Olio",
+    "price": 36.4,
+    "description": "Spaghetti + Smoked Duck + Olive + Cherry Tomato + Chilli Flakes + Parmesan Cheese",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE20220623063425050586/detail/menueditor_item_22216242ba814e1ea5b93b6c89f5e35b_1730363380164983137.webp"
+  },
+  {
+    "category": "Mains : Pasta",
+    "name": "Smoked Duck Carbonara",
+    "price": 36.4,
+    "description": "Spaghetti in Creamy Sauce + Smoked Duck + Runny Egg Yolk + Parmesan Cheese",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100509152077654/detail/menueditor_item_2d1ac5e8b1084f64bd734c5cf01f1b27_1730363424485592690.webp"
+  },
+  {
+    "category": "Mains : Pasta",
+    "name": "Spaghetti Carbonara",
+    "price": 33.8,
+    "description": "Spaghetti In Creamy Sauce +  Runny Egg Yolk + Turkey Slice.",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100508575613086/detail/menueditor_item_ed1f420fa161403c808b95be47cb4f05_1633424846590525372.webp"
+  },
+  {
+    "category": "Mains : Pasta",
+    "name": "Hokkien Mee Pasta ( Dry Style )",
+    "price": 36.4,
+    "description": "Spaghetti + Penang Hokkien Mee Flavours + Prawns + Shredded Chicken + Egg",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100509095460362/detail/menueditor_item_cd8e861a4592479c96b51270de2aec41_1633425168137430610.webp"
+  },
+  {
+    "category": "Mains : Pasta",
+    "name": "Seafood Pomodoro",
+    "price": 37.7,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100509121866828/detail/menueditor_item_5c3b99f6e7e44f47bea68016155cf178_1633425135253381454.webp"
+  },
+  {
+    "category": "Mains : Pasta",
+    "name": "Salted Egg Pasta with Softshell Crab",
+    "price": 37.7,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100509164455305/detail/menueditor_item_0434ce5a7e0145718c640b6d819073f5_1633425378598984160.webp"
+  },
+  {
+    "category": "Mains : Pasta",
+    "name": "Soft-shell Crab Fettuccine",
+    "price": 37.7,
+    "description": "",
+    "imageUrl": ""
+  },
+  {
+    "category": "Mains : Others",
+    "name": "Arang Chicken Chop",
+    "price": 32.5,
+    "description": "Deep Fried Chicken Thigh + Oriental-style Gravy + Potato Wedges + Salad",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE20220215085228012251/detail/menueditor_item_e3f1e8ffb0454e6a938a24f50f3e695c_1732706186993123035.webp"
+  },
+  {
+    "category": "Mains : Others",
+    "name": "Hawaiian Chicken Polo Burger",
+    "price": 39.65,
+    "description": "Polo Bun + Grilled Chicken Thigh + Mushroom + Cheese + Lettuce + Tomato + Thousand Island + Curly Fries + Salad",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100509324469109/detail/menueditor_item_e1d959c3a4b643e7873478f23cba66d2_1732706572040524936.webp"
+  },
+  {
+    "category": "Mains : Others",
+    "name": "Salted Egg Chicken Chop",
+    "price": 36.4,
+    "description": "Deep fried chicken thigh + salted egg sauce (spicy) + potato wedges + salad",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100509343023833/detail/menueditor_item_bf11af066ac74de590b78afb556ab97b_1732706143424498227.webp"
+  },
+  {
+    "category": "Mains : Others",
+    "name": "Chicken Parmigiana",
+    "price": 37.7,
+    "description": "Deep Fried Chicken Thigh + Chef’s Specialty Sauce + Onion + Cheese + Salad",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100509361049045/detail/menueditor_item_a4a79c1fd48e4a1c9fc3176263d71171_1732706163005087212.webp"
+  },
+  {
+    "category": "Mains : Others",
+    "name": "Fish Parmigiana",
+    "price": 37.7,
+    "description": "Deep Fried Fish Fillet  + Chef’s Specialty Sauce + Onion + Cheese + Salad",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100509373991982/detail/menueditor_item_942bb197737342998443199e1de38c82_1732872367642593625.webp"
+  },
+  {
+    "category": "Mains : Others",
+    "name": "Fish & Chips",
+    "price": 32.5,
+    "description": "Deep Fried Fish Fillet + French Fries + House-Made Tartar Sauce + Salad",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100509522458755/detail/menueditor_item_52f70ab95132428f87d04c9a134dcc8c_1633427539381368657.webp"
+  },
+  {
+    "category": "Mains : Others",
+    "name": "Lemon Twist Chicken Chop",
+    "price": 33.8,
+    "description": "Deep fried chicken thigh + Lemon sauce + Curly fries + Salad",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100509503697557/detail/menueditor_item_7f56720882f14688b0432df4cd12aa36_1733024902393866696.webp"
+  },
+  {
+    "category": "Mains : Others",
+    "name": "Lemon Twist Fish & Fries",
+    "price": 33.8,
+    "description": "Deep fried fish fillet + Lemon sauce + Curly fries + Salad",
+    "imageUrl": ""
+  },
+  {
+    "category": "Snacks",
+    "name": "Salted Egg French Fries",
+    "price": 19.5,
+    "description": "Salted Egg Coated French Fries",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100510200785803/detail/menueditor_item_1fb284167bf94d03b58e383075b1b28e_1633429201277879828.webp"
+  },
+  {
+    "category": "Snacks",
+    "name": "Nachos Bolognese",
+    "price": 31.85,
+    "description": "Nachos + chicken Bolognese + melted cheese + tomato dip",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100510191795147/detail/menueditor_item_1a398f4c158b422f897788d582109d49_1633429152454536082.webp"
+  },
+  {
+    "category": "Snacks",
+    "name": "Sweet Potato Fries",
+    "price": 23.4,
+    "description": "Sweet potato fries + dip",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE20220623063425025098/detail/menueditor_item_e625c630dd8243a4a5547b9619ea0baa_1730363512263483338.webp"
+  },
+  {
+    "category": "Snacks",
+    "name": "Potatoes-Pohtahtoes",
+    "price": 19.5,
+    "description": "French Fries + Tater tots + Cheese Sauce",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100510211953732/detail/menueditor_item_b9349074f2fd4c0a8ab5184ee10e6e08_1730363537450649475.webp"
+  },
+  {
+    "category": "Snacks",
+    "name": "Fish Fingers",
+    "price": 24.05,
+    "description": "Fried Cod Fish Fingers + Homemade Tartar Sauce",
+    "imageUrl": ""
+  },
+  {
+    "category": "Snacks",
+    "name": "Chicken Popper Platter",
+    "price": 24.05,
+    "description": "Popcorn Chicken + Chicken Nuggets",
+    "imageUrl": ""
+  },
+  {
+    "category": "Snacks",
+    "name": "Signature Chicken Bites",
+    "price": 24.05,
+    "description": "Fried Chicken Pieces + Sweet & Spicy Sauce",
+    "imageUrl": ""
+  },
+  {
+    "category": "Snacks",
+    "name": "Nachos-Menachos",
+    "price": 25.35,
+    "description": "Nachos + Melted Cheese + Tomato Dip",
+    "imageUrl": ""
+  },
+  {
+    "category": "Cakes & Muffins",
+    "name": "Chocolate Muffin",
+    "price": 9.9,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2024103107291828017/detail/menueditor_item_6a82873624cf42bab3ccfb29c4a437b0_1730359712090444393.webp"
+  },
+  {
+    "category": "Cakes & Muffins",
+    "name": "Black Forest",
+    "price": 15.9,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2024103107302036634/detail/menueditor_item_c675216b4c354d71b5e5686b08730366_1730362554645971702.webp"
+  },
+  {
+    "category": "Cakes & Muffins",
+    "name": "Butterscotch Muffin",
+    "price": 9.9,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2024112713215635112/detail/menueditor_item_c931fdd34cbc4983a472e3583f2cefe8_1732713681770156914.webp"
+  },
+  {
+    "category": "Cakes & Muffins",
+    "name": "Classic Orange Cheese",
+    "price": 15.9,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2024112710503979528/detail/menueditor_item_c20333ed55d04fd6819c624be8faa17e_1732704600592437620.webp"
+  },
+  {
+    "category": "Cakes & Muffins",
+    "name": "Classic Tiramisu",
+    "price": 15.9,
+    "description": "",
+    "imageUrl": ""
+  },
+  {
+    "category": "Coffee",
+    "name": "Long Black",
+    "price": 11.7,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604140764050/detail/menueditor_item_cf1e607989b44bf99b647fb7f82e76c9_1732705749012712232.webp"
+  },
+  {
+    "category": "Coffee",
+    "name": "Peppermint Mocha",
+    "price": 17.55,
+    "description": "Peppermint + Cocoa + Espresso + Milk",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604131800623/detail/menueditor_item_91eb01f9e69e448095fb07de527de8d5_1732705881413498530.webp"
+  },
+  {
+    "category": "Coffee",
+    "name": "Honey Lemon Black",
+    "price": 13.65,
+    "description": "Long Black with honey + lemon",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604115668573/detail/menueditor_item_676315723bb246fdb2c093632cff876f_1730363653002066354.webp"
+  },
+  {
+    "category": "Coffee",
+    "name": "Flat White",
+    "price": 14.3,
+    "description": "Espresso + Milk",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604113198061/detail/menueditor_item_fb58904422774972b9690c496657881b_1730365095259982920.webp"
+  },
+  {
+    "category": "Coffee",
+    "name": "Cappuccino",
+    "price": 14.3,
+    "description": "Espresso + Milk",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604105439530/detail/menueditor_item_63bb1d1d54bd4fb381e07f0af7b6cf23_1732705901036258685.webp"
+  },
+  {
+    "category": "Coffee",
+    "name": "Latte",
+    "price": 14.3,
+    "description": "Caramel + Espresso + Milk + Sprinkle Salt",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604102422736/detail/menueditor_item_eca9a6e02d2f4cb8bb85eef698b5eaf7_1730363674923955306.webp"
+  },
+  {
+    "category": "Coffee",
+    "name": "Salted Caramel Latte",
+    "price": 15.6,
+    "description": "Caramel + Espresso + Foam Milk + Sprinkle Salt",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604083996905/detail/menueditor_item_eb6700be33e74bf6a9f443b8bc21103a_1732705724627317411.webp"
+  },
+  {
+    "category": "Coffee",
+    "name": "Salted Caramel Macchiato",
+    "price": 15.6,
+    "description": "Cocoa + Espresso + Milk",
+    "imageUrl": ""
+  },
+  {
+    "category": "Coffee",
+    "name": "Mocha",
+    "price": 16.25,
+    "description": "",
+    "imageUrl": ""
+  },
+  {
+    "category": "Non-Coffee Drinks",
+    "name": "Brew Tea",
+    "price": 11.05,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604185972064/detail/menueditor_item_1133a45047344cd9bab63b7789afa243_1732705215080286537.webp"
+  },
+  {
+    "category": "Non-Coffee Drinks",
+    "name": "Peppermint Chocolate",
+    "price": 16.25,
+    "description": "Peppermint Flavor + Cocoa + Milk",
+    "imageUrl": ""
+  },
+  {
+    "category": "Non-Coffee Drinks",
+    "name": "Honey Lemon",
+    "price": 11.05,
+    "description": "Cinnamon Base Chai + Milk",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604182729940/detail/menueditor_item_f03b30d5ce804177b7b594609c7819f4_1732705198835475620.webp"
+  },
+  {
+    "category": "Non-Coffee Drinks",
+    "name": "Lemongrass Ginger Tea",
+    "price": 11.7,
+    "description": "Pure Shiru Matcha + Milk",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604175531782/detail/menueditor_item_b0a53a2944964d43993578c3c17e6f62_1732705149958832446.webp"
+  },
+  {
+    "category": "Non-Coffee Drinks",
+    "name": "Lemon Tea",
+    "price": 11.7,
+    "description": "Roasted Tea + Milk",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604171914794/detail/menueditor_item_12b976209373475ebe8341eccb974d2c_1730363618787194657.webp"
+  },
+  {
+    "category": "Non-Coffee Drinks",
+    "name": "Peach Tea",
+    "price": 11.7,
+    "description": "Cocoa + Milk",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604161674353/detail/menueditor_item_06a82d4cd2f84c208ba2e9a52bf9a4f1_1730363581552726159.webp"
+  },
+  {
+    "category": "Non-Coffee Drinks",
+    "name": "Chai Latte",
+    "price": 14.3,
+    "description": "Hazelnut Flavour + Cocoa + Milk",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604155287908/detail/menueditor_item_bb9ce8eda5c945b6b40efe45c8d9c3a3_1730364202414189554.webp"
+  },
+  {
+    "category": "Non-Coffee Drinks",
+    "name": "Matcha Latte",
+    "price": 14.3,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604152165973/detail/menueditor_item_cd0ab800702c4e6aa3b13a0f607329b3_1732705467195230453.webp"
+  },
+  {
+    "category": "Non-Coffee Drinks",
+    "name": "Hojicha Latte",
+    "price": 15.6,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100609410321728/detail/menueditor_item_67f4b37ca04a48f2ae1e4b5a71cd31b5_1732705700835637109.webp"
+  },
+  {
+    "category": "Non-Coffee Drinks",
+    "name": "Chocolate",
+    "price": 14.3,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2024052208234107331/detail/menueditor_item_596a1ecc4f4a44819562d705894fefec_1730363996333568011.webp"
+  },
+  {
+    "category": "Non-Coffee Drinks",
+    "name": "Hazelnut Chocolate",
+    "price": 16.25,
+    "description": "",
+    "imageUrl": ""
+  },
+  {
+    "category": "Frappe & Smoothies (Ice Blended Drinks)",
+    "name": "Coffee & Caramel Frappe",
+    "price": 20.8,
+    "description": "Caramel + Espresso",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604221008855/detail/menueditor_item_8eabf6e8146c491795de08af5db1f0fc_1730363714991619826.webp"
+  },
+  {
+    "category": "Frappe & Smoothies (Ice Blended Drinks)",
+    "name": "Mango Smoothie",
+    "price": 22.75,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604222461093/detail/menueditor_item_5ee91f5ca5a247b1824bba82f2f5f5cd_1730363698853876705.webp"
+  },
+  {
+    "category": "Frappe & Smoothies (Ice Blended Drinks)",
+    "name": "Mocha Frappe",
+    "price": 20.8,
+    "description": "Cocoa + Espresso",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604215600259/detail/menueditor_item_b9a816437a8d41c9bf3b0982cfca606d_1732705120606278856.webp"
+  },
+  {
+    "category": "Frappe & Smoothies (Ice Blended Drinks)",
+    "name": "Chocolate Frappe",
+    "price": 20.8,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604214171297/detail/menueditor_item_c7c57d2766324b898b9776805f55ac57_1732705092426929435.webp"
+  },
+  {
+    "category": "Frappe & Smoothies (Ice Blended Drinks)",
+    "name": "Matcha Frappe",
+    "price": 20.8,
+    "description": "",
+    "imageUrl": ""
+  },
+  {
+    "category": "Frappe & Smoothies (Ice Blended Drinks)",
+    "name": "Berry Smoothie",
+    "price": 22.75,
+    "description": "",
+    "imageUrl": ""
+  },
+  {
+    "category": "Fresh Juices & Sodas",
+    "name": "Orange Juice",
+    "price": 14.3,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604234408579/detail/menueditor_item_e2ab37447d454c079be59756b1bf3ae1_1730363759739231662.webp"
+  },
+  {
+    "category": "Fresh Juices & Sodas",
+    "name": "100Plus",
+    "price": 8.96,
+    "description": "",
+    "imageUrl": "https://food-cms.grab.com/compressed_webp/items/MYITE2021100604241863260/detail/menueditor_item_5fc02566905545c48b276147f9281f43_1732705966491480137.webp"
+  },
+  {
+    "category": "Fresh Juices & Sodas",
+    "name": "Watermelon Juice",
+    "price": 14.3,
+    "description": "",
+    "imageUrl": ""
+  },
+  {
+    "category": "Fresh Juices & Sodas",
+    "name": "Coke",
+    "price": 10.4,
+    "description": "",
+    "imageUrl": ""
+  },
+  {
+    "category": "Fresh Juices & Sodas",
+    "name": "Diet Coke",
+    "price": 10.4,
+    "description": "",
+    "imageUrl": ""
+  },
+  {
+    "category": "Fresh Juices & Sodas",
+    "name": "Sprite",
+    "price": 10.4,
+    "description": "",
+    "imageUrl": ""
+  }
+]

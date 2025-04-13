@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/menu.dart'; // Make sure the path is correct
 
 class RestaurantMenuPage extends StatefulWidget {
   final String restaurantId;
@@ -53,6 +54,20 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
         title: const Text('Menu', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.upload_file),
+            onPressed: () async {
+              await uploadMenuItems(widget.restaurantId);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ Menu uploaded successfully!'),
+                  ),
+                );
+              }
+            },
+            tooltip: 'Upload Menu',
+          ),
           IconButton(
             onPressed: () {
               Navigator.pushNamed(
@@ -150,8 +165,7 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
                         .map((doc) => doc.data() as Map<String, dynamic>)
                         .where(
                           (data) =>
-                              data['isPlaceholder'] !=
-                                  true && // Filter out placeholders
+                              data['isPlaceholder'] != true &&
                               (data['name']?.toString().toLowerCase().contains(
                                     searchQuery,
                                   ) ??
@@ -185,68 +199,50 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
                     final price = data['price'] ?? 0;
                     final imageUrl = data['imageUrl'] ?? '';
 
-                    // Inside itemBuilder of GridView.builder
                     return Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 6,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ClipRRect(
                             borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(20),
+                              top: Radius.circular(16),
                             ),
                             child:
                                 imageUrl.isNotEmpty
                                     ? Image.network(
                                       imageUrl,
-                                      height: 130,
+                                      height: 150,
                                       width: double.infinity,
                                       fit: BoxFit.cover,
                                     )
                                     : Container(
-                                      height: 130,
+                                      height: 120,
                                       width: double.infinity,
                                       color: Colors.grey[300],
                                       child: const Icon(
                                         Icons.image_not_supported,
-                                        size: 32,
                                       ),
                                     ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
-                            ),
+                            padding: const EdgeInsets.all(12),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'RM${price.toString()}',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black54,
-                                  ),
+                                  style: const TextStyle(color: Colors.black54),
                                 ),
                               ],
                             ),
