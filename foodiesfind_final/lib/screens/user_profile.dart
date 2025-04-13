@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import '../widgets/tags_info.dart';
 
 class UserProfilePage extends StatefulWidget {
   final String initialUsername;
@@ -24,22 +25,45 @@ class _UserProfilePageState extends State<UserProfilePage> {
   late TextEditingController _emailController;
 
   List<String> selectedAllergies = [];
-  List<String> selectedPreferences = [];
+  List<String> selectedDietaryPreferences = [];
+  List<String> selectedTasteProfiles = [];
 
   final List<String> allergiesOptions = [
     'Peanuts',
-    'Gluten',
-    'Shellfish',
+    'Tree nuts',
+    'Soy',
     'Dairy',
+    'Shellfish',
+    'Fish',
+    'Eggs',
+    'Gluten',
   ];
-  final List<String> preferencesOptions = [
+  final List<String> dietaryOptions = [
+    'Vegan',
     'Vegetarian',
     'Halal',
+    'Pescatarian',
+    'Dairy-free',
+    'Gluten-free',
+    'Nut-free',
+    'Low-sugar',
+    'Low-carb',
+    'Low-fat',
+  ];
+  final List<String> tasteOptions = [
+    'Savoury',
+    'Sweet',
+    'Bitter',
     'Spicy',
+    'Creamy',
+    'Crunchy',
+    'Tangy',
+    'Earthy',
   ];
 
   bool showAllergyOptions = false;
-  bool showPreferenceOptions = false;
+  bool showDietaryOptions = false;
+  bool showTasteOptions = false;
   bool _uploadingImage = false;
   File? _pickedImage;
   String? _existingProfileUrl;
@@ -66,7 +90,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
         _emailController.text = doc['email'] ?? '';
         _existingProfileUrl = doc['profileImageUrl'] ?? null;
         selectedAllergies = List<String>.from(doc['allergies'] ?? []);
-        selectedPreferences = List<String>.from(doc['preferences'] ?? []);
+        selectedDietaryPreferences = List<String>.from(doc['dietary'] ?? []);
+        selectedTasteProfiles = List<String>.from(doc['taste'] ?? []);
       });
     }
   }
@@ -102,9 +127,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       source: ImageSource.camera,
                     );
                     if (pickedFile != null) {
-                      setState(() {
-                        _pickedImage = File(pickedFile.path);
-                      });
+                      setState(() => _pickedImage = File(pickedFile.path));
                     }
                   },
                 ),
@@ -117,9 +140,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       source: ImageSource.gallery,
                     );
                     if (pickedFile != null) {
-                      setState(() {
-                        _pickedImage = File(pickedFile.path);
-                      });
+                      setState(() => _pickedImage = File(pickedFile.path));
                     }
                   },
                 ),
@@ -130,9 +151,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void toggleSelection(List<String> list, String value) {
-    setState(() {
-      list.contains(value) ? list.remove(value) : list.add(value);
-    });
+    setState(() => list.contains(value) ? list.remove(value) : list.add(value));
   }
 
   Future<void> _saveUserProfile() async {
@@ -149,10 +168,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
     try {
       if (_pickedImage != null) {
-        final ref = FirebaseStorage.instance
-            .ref()
-            .child('profile_pictures')
-            .child('$uid.jpg');
+        final ref = FirebaseStorage.instance.ref().child(
+          'profile_pictures/$uid.jpg',
+        );
         await ref.putFile(_pickedImage!);
         imageUrl = await ref.getDownloadURL();
       }
@@ -161,17 +179,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
         'username': _usernameController.text.trim(),
         'email': _emailController.text.trim(),
         'allergies': selectedAllergies,
-        'preferences': selectedPreferences,
+        'dietary': selectedDietaryPreferences,
+        'taste': selectedTasteProfiles,
         'profileImageUrl': imageUrl ?? '',
       });
 
+      setState(() => _uploadingImage = false);
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
+      setState(() => _uploadingImage = false);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Error saving profile: $e')));
-    } finally {
-      setState(() => _uploadingImage = false);
     }
   }
 
@@ -179,7 +198,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder:
-          (context) => AlertDialog(
+          (_) => AlertDialog(
             title: const Text('Log Out'),
             content: const Text('Are you sure you want to log out?'),
             actions: [
@@ -194,10 +213,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ],
           ),
     );
-
     if (shouldLogout == true) {
       await FirebaseAuth.instance.signOut();
-      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (r) => false);
     }
   }
 
@@ -275,7 +293,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
             _sectionTitle('Email'),
             _textField(_emailController, enabled: false),
             const SizedBox(height: 20),
-            _sectionTitle('Allergies'),
+
+            // Allergies with info
+            _sectionTitleWithInfo(
+              'Allergies',
+              onInfoTap:
+                  () => showDialog(
+                    context: context,
+                    builder:
+                        (_) => const TagInfoDialog(
+                          title: 'Allergy Tags',
+                          descriptions: allergyTagDescriptions,
+                        ),
+                  ),
+            ),
             _chipSelector(
               items: selectedAllergies,
               color: Colors.orange.shade50,
@@ -287,28 +318,71 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       setState(() => showAllergyOptions = !showAllergyOptions),
               expanded: showAllergyOptions,
               options: allergiesOptions,
-              onCheckToggle: (item) => toggleSelection(selectedAllergies, item),
               selectedItems: selectedAllergies,
+              onCheckToggle: (item) => toggleSelection(selectedAllergies, item),
             ),
             const SizedBox(height: 20),
-            _sectionTitle('Preferences'),
-            _chipSelector(
-              items: selectedPreferences,
-              color: Colors.purple.shade50,
-              textColor: Colors.purple.shade800,
-              onDelete:
-                  (item) => setState(() => selectedPreferences.remove(item)),
-              toggle:
-                  () => setState(
-                    () => showPreferenceOptions = !showPreferenceOptions,
+
+            // Dietary with info
+            _sectionTitleWithInfo(
+              'Dietary Preferences',
+              onInfoTap:
+                  () => showDialog(
+                    context: context,
+                    builder:
+                        (_) => const TagInfoDialog(
+                          title: 'Dietary Tags',
+                          descriptions: dietaryTagDescriptions,
+                        ),
                   ),
-              expanded: showPreferenceOptions,
-              options: preferencesOptions,
+            ),
+            _chipSelector(
+              items: selectedDietaryPreferences,
+              color: Colors.green.shade50,
+              textColor: Colors.green.shade800,
+              onDelete:
+                  (item) =>
+                      setState(() => selectedDietaryPreferences.remove(item)),
+              toggle:
+                  () =>
+                      setState(() => showDietaryOptions = !showDietaryOptions),
+              expanded: showDietaryOptions,
+              options: dietaryOptions,
+              selectedItems: selectedDietaryPreferences,
               onCheckToggle:
-                  (item) => toggleSelection(selectedPreferences, item),
-              selectedItems: selectedPreferences,
+                  (item) => toggleSelection(selectedDietaryPreferences, item),
+            ),
+            const SizedBox(height: 20),
+
+            // Taste with info
+            _sectionTitleWithInfo(
+              'Taste Profiles',
+              onInfoTap:
+                  () => showDialog(
+                    context: context,
+                    builder:
+                        (_) => const TagInfoDialog(
+                          title: 'Taste Tags',
+                          descriptions: tasteTagDescriptions,
+                        ),
+                  ),
+            ),
+            _chipSelector(
+              items: selectedTasteProfiles,
+              color: Colors.blue.shade50,
+              textColor: Colors.blue.shade800,
+              onDelete:
+                  (item) => setState(() => selectedTasteProfiles.remove(item)),
+              toggle:
+                  () => setState(() => showTasteOptions = !showTasteOptions),
+              expanded: showTasteOptions,
+              options: tasteOptions,
+              selectedItems: selectedTasteProfiles,
+              onCheckToggle:
+                  (item) => toggleSelection(selectedTasteProfiles, item),
             ),
             const SizedBox(height: 30),
+
             ElevatedButton(
               onPressed: _uploadingImage ? null : _saveUserProfile,
               style: ElevatedButton.styleFrom(
@@ -328,8 +402,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       : const Text('Save Profile'),
             ),
             const SizedBox(height: 10),
-
-            // ✅ Logout Button with Confirmation
             TextButton.icon(
               onPressed: _showLogoutConfirmation,
               icon: const Icon(Icons.logout, color: Colors.red),
@@ -344,9 +416,33 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget _sectionTitle(String text) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
+      child: Text(
+        text,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      ),
     );
   }
+
+Widget _sectionTitleWithInfo(String text, {required VoidCallback onInfoTap}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: Row(
+      mainAxisSize: MainAxisSize.min, // shrink to fit
+      children: [
+        Text(
+          text,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const SizedBox(width: 6),     // small gap
+        GestureDetector(
+          onTap: onInfoTap,
+          child: const Icon(Icons.info_outline, size: 20, color: Colors.grey),
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _textField(TextEditingController controller, {bool enabled = true}) {
     return TextField(
@@ -371,8 +467,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
     required List<String> selectedItems,
     required void Function(String) onCheckToggle,
   }) {
+    const tileHeight = 40.0;
+    const maxVisible = 3;
+    final visibleCount =
+        options.length < maxVisible ? options.length : maxVisible;
+    final listHeight = visibleCount * tileHeight;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(10),
@@ -386,17 +488,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   spacing: 6,
                   runSpacing: 6,
                   children:
-                      items
-                          .map(
-                            (item) => Chip(
-                              label: Text(item),
-                              backgroundColor: color,
-                              labelStyle: TextStyle(color: textColor),
-                              deleteIcon: const Icon(Icons.close, size: 16),
-                              onDeleted: () => onDelete(item),
-                            ),
-                          )
-                          .toList(),
+                      items.map((item) {
+                        return Chip(
+                          label: Text(item),
+                          backgroundColor: color,
+                          labelStyle: TextStyle(color: textColor),
+                          deleteIcon: const Icon(Icons.close, size: 16),
+                          onDeleted: () => onDelete(item),
+                        );
+                      }).toList(),
                 ),
               ),
               IconButton(
@@ -406,17 +506,28 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ],
           ),
           if (expanded)
-            Column(
-              children:
-                  options
-                      .map(
-                        (item) => CheckboxListTile(
-                          title: Text(item),
-                          value: selectedItems.contains(item),
-                          onChanged: (_) => onCheckToggle(item),
-                        ),
-                      )
-                      .toList(),
+            SizedBox(
+              height: listHeight,
+              child: Scrollbar(
+                thumbVisibility: true,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  children:
+                      options.map((option) {
+                        return CheckboxListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.only(left: 8.0),
+                          title: Text(
+                            option,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                          value: selectedItems.contains(option),
+                          onChanged: (_) => onCheckToggle(option),
+                        );
+                      }).toList(),
+                ),
+              ),
             ),
         ],
       ),

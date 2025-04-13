@@ -1,10 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/success_popup.dart';
+import '../widgets/tags_info.dart';
 
 class ReviewFormPage extends StatefulWidget {
   final String restaurantId;
@@ -24,18 +25,36 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
 
   final List<String> tasteOptions = [
     'Savoury',
-    'Light',
     'Sweet',
+    'Bitter',
     'Spicy',
-    'Non- spicy',
+    'Creamy',
+    'Crunchy',
+    'Tangy',
+    'Earthy',
   ];
   final List<String> ingredientOptions = [
     'Peanuts',
+    'Tree nuts',
+    'Soy',
     'Dairy',
     'Shellfish',
+    'Fish',
+    'Eggs',
     'Gluten',
   ];
-  final List<String> dietaryOptions = ['Vegan', 'Vegetarian', 'Halal'];
+  final List<String> dietaryOptions = [
+    'Vegan',
+    'Vegetarian',
+    'Halal',
+    'Pescatarian',
+    'Dairy-free',
+    'Gluten-free',
+    'Nut-free',
+    'Low-sugar',
+    'Low-carb',
+    'Low-fat',
+  ];
 
   @override
   void initState() {
@@ -45,30 +64,23 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
 
   Future<void> _loadMenuItems() async {
     if (widget.restaurantId.isEmpty) return;
-    try {
-      final snapshot =
-          await FirebaseFirestore.instance
-              .collection('restaurants')
-              .doc(widget.restaurantId)
-              .collection('menu')
-              .get();
-      final items =
-          snapshot.docs
-              .map((doc) => doc.data()['name']?.toString() ?? '')
-              .where((name) => name.isNotEmpty)
-              .toList();
-      items.sort();
-      setState(() {
-        menuItems = items;
-      });
-    } catch (e) {
-      debugPrint('Error fetching menu items: $e');
-    }
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection('restaurants')
+            .doc(widget.restaurantId)
+            .collection('menu')
+            .get();
+    final items =
+        snapshot.docs
+            .map((doc) => doc.data()['name']?.toString() ?? '')
+            .where((name) => name.isNotEmpty)
+            .toList()
+          ..sort();
+    setState(() => menuItems = items);
   }
 
   Future<void> _pickImages() async {
-    final picker = ImagePicker();
-    final images = await picker.pickMultiImage();
+    final images = await ImagePicker().pickMultiImage();
     if (images != null && images.isNotEmpty) {
       setState(() => selectedPhotos.addAll(images));
     }
@@ -82,7 +94,6 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
       );
       return;
     }
-
     final reviewData = {
       'userId': user.uid,
       'restaurantId': widget.restaurantId,
@@ -101,18 +112,39 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
               )
               .toList(),
     };
-
     try {
       await FirebaseFirestore.instance
           .collection('user_reviews')
           .add(reviewData);
       _showSuccessDialog();
     } catch (e) {
-      debugPrint('Error submitting review: $e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Failed to submit review.')));
     }
+  }
+
+  Widget _buildInfoLabel(
+    String label,
+    Map<String, String> descriptions,
+    String title,
+  ) {
+    return Row(
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(width: 4),
+        GestureDetector(
+          onTap:
+              () => showDialog(
+                context: context,
+                builder:
+                    (_) =>
+                        TagInfoDialog(title: title, descriptions: descriptions),
+              ),
+          child: const Icon(Icons.info_outline, size: 18, color: Colors.grey),
+        ),
+      ],
+    );
   }
 
   Widget _buildOptionChip(String label, bool selected, VoidCallback onTap) {
@@ -124,7 +156,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
         decoration: BoxDecoration(
           color: selected ? const Color(0xFFC8E0CA) : Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade300, width: 1),
+          border: Border.all(color: Colors.grey.shade300),
         ),
         child: Text(
           label,
@@ -139,6 +171,10 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
 
   Widget _buildDishSection(int index) {
     final dish = dishes[index];
+    // calculate the width for the dropdown
+    final fieldWidth =
+        MediaQuery.of(context).size.width - 20 * 2 - 12 * 2; // adjust paddings
+
     return Padding(
       padding: const EdgeInsets.only(top: 28),
       child: Column(
@@ -176,39 +212,32 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ===== Modified Autocomplete =====
                 Autocomplete<String>(
-                  optionsBuilder: (TextEditingValue value) {
-                    final query = value.text.toLowerCase();
-                    return query.isEmpty
+                  optionsBuilder: (value) {
+                    final q = value.text.toLowerCase();
+                    return q.isEmpty
                         ? menuItems
                         : menuItems.where(
-                          (item) => item.toLowerCase().contains(query),
+                          (item) => item.toLowerCase().contains(q),
                         );
                   },
-                  onSelected: (String selection) {
-                    dish.nameController.text = selection;
-                  },
-                  fieldViewBuilder: (context, controller, focusNode, _) {
-                    controller.text = dish.nameController.text;
+                  onSelected: (sel) => dish.nameController.text = sel,
+                  fieldViewBuilder: (ctx, ctrl, fn, _) {
+                    ctrl.text = dish.nameController.text;
                     return TextField(
-                      controller: controller,
-                      focusNode: focusNode,
+                      controller: ctrl,
+                      focusNode: fn,
                       decoration: InputDecoration(
                         hintText: 'Select or enter a dish',
                         filled: true,
                         fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 14,
-                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(color: Colors.grey.shade300),
                         ),
                       ),
-                      onChanged: (val) {
-                        dish.nameController.text = val;
-                      },
+                      onChanged: (v) => dish.nameController.text = v,
                     );
                   },
                   optionsViewBuilder: (context, onSelected, options) {
@@ -217,40 +246,35 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                       child: Material(
                         elevation: 2,
                         borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          width: MediaQuery.of(context).size.width - 64,
-                          constraints: const BoxConstraints(maxHeight: 220),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade300),
-                          ),
-                          child: ListView.builder(
-                            padding: EdgeInsets.zero,
-                            itemCount: options.length,
-                            itemBuilder: (context, index) {
-                              final option = options.elementAt(index);
-                              return InkWell(
-                                onTap: () => onSelected(option),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border:
-                                        index < options.length - 1
-                                            ? Border(
-                                              bottom: BorderSide(
-                                                color: Colors.grey.shade200,
-                                              ),
-                                            )
+                        child: SizedBox(
+                          width: fieldWidth,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 200),
+                            child: ListView.builder(
+                              padding: EdgeInsets.zero,
+                              itemCount: options.length,
+                              itemBuilder: (ctx, i) {
+                                final option = options.elementAt(i);
+                                final isSelected =
+                                    option == dish.nameController.text;
+                                return InkWell(
+                                  onTap: () => onSelected(option),
+                                  child: Container(
+                                    color:
+                                        isSelected
+                                            ? const Color(
+                                              0xFFC8E0CA,
+                                            ).withOpacity(0.3)
                                             : null,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    child: Text(option),
                                   ),
-                                  child: Text(option),
-                                ),
-                              );
-                            },
+                                );
+                              },
+                            ),
                           ),
                         ),
                       ),
@@ -258,45 +282,63 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                   },
                 ),
                 const SizedBox(height: 12),
-                const Text('Taste:'),
+
+                // ===== /Autocomplete =====
+                _buildInfoLabel('Taste', tasteTagDescriptions, 'Taste Tags'),
+                const SizedBox(height: 8),
                 Wrap(
                   children:
                       tasteOptions.map((t) {
-                        final selected = dish.taste.contains(t);
-                        return _buildOptionChip(t, selected, () {
-                          setState(() {
-                            selected ? dish.taste.remove(t) : dish.taste.add(t);
-                          });
+                        final sel = dish.taste.contains(t);
+                        return _buildOptionChip(t, sel, () {
+                          setState(
+                            () =>
+                                sel ? dish.taste.remove(t) : dish.taste.add(t),
+                          );
                         });
                       }).toList(),
                 ),
+                const SizedBox(height: 10),
+
+                _buildInfoLabel(
+                  'Ingredients',
+                  allergyTagDescriptions,
+                  'Allergy Tags',
+                ),
                 const SizedBox(height: 8),
-                const Text('Ingredients:'),
                 Wrap(
                   children:
                       ingredientOptions.map((i) {
-                        final selected = dish.ingredients.contains(i);
-                        return _buildOptionChip(i, selected, () {
-                          setState(() {
-                            selected
-                                ? dish.ingredients.remove(i)
-                                : dish.ingredients.add(i);
-                          });
+                        final sel = dish.ingredients.contains(i);
+                        return _buildOptionChip(i, sel, () {
+                          setState(
+                            () =>
+                                sel
+                                    ? dish.ingredients.remove(i)
+                                    : dish.ingredients.add(i),
+                          );
                         });
                       }).toList(),
                 ),
+                const SizedBox(height: 10),
+
+                _buildInfoLabel(
+                  'Dietary',
+                  dietaryTagDescriptions,
+                  'Dietary Tags',
+                ),
                 const SizedBox(height: 8),
-                const Text('Dietary:'),
                 Wrap(
                   children:
                       dietaryOptions.map((d) {
-                        final selected = dish.dietary.contains(d);
-                        return _buildOptionChip(d, selected, () {
-                          setState(() {
-                            selected
-                                ? dish.dietary.remove(d)
-                                : dish.dietary.add(d);
-                          });
+                        final sel = dish.dietary.contains(d);
+                        return _buildOptionChip(d, sel, () {
+                          setState(
+                            () =>
+                                sel
+                                    ? dish.dietary.remove(d)
+                                    : dish.dietary.add(d),
+                          );
                         });
                       }).toList(),
                 ),
@@ -309,11 +351,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
   }
 
   void _addDish() {
-    if (dishes.length < 5) {
-      setState(() {
-        dishes.add(DishReview());
-      });
-    }
+    if (dishes.length < 5) setState(() => dishes.add(DishReview()));
   }
 
   void _showSuccessDialog() {
@@ -325,10 +363,9 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
           (_) =>
               const SuccessPopup(message: 'Review is submitted successfully!'),
     );
-
     Future.delayed(const Duration(seconds: 2), () {
-      Navigator.of(context, rootNavigator: true).pop(); // close popup
-      Navigator.pop(context); // go back
+      Navigator.of(context, rootNavigator: true).pop();
+      Navigator.pop(context);
     });
   }
 
@@ -374,7 +411,6 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
               direction: Axis.horizontal,
               allowHalfRating: false,
               itemCount: 5,
-              itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
               itemBuilder:
                   (_, __) => const Icon(Icons.star, color: Colors.orange),
               onRatingUpdate: (r) => setState(() => rating = r),
@@ -460,7 +496,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
 class DishReview {
   final TextEditingController nameController = TextEditingController();
   String get name => nameController.text;
-  set name(String value) => nameController.text = value;
+  set name(String v) => nameController.text = v;
   List<String> taste = [];
   List<String> ingredients = [];
   List<String> dietary = [];
