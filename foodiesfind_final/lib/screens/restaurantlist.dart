@@ -212,6 +212,10 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
                 );
               }
 
+              // decide which image to show
+              final imageUrl = (data['imageURL'] ?? '').toString().trim();
+              final hasImage = imageUrl.isNotEmpty;
+
               return GestureDetector(
                 onTap:
                     () => Navigator.push(
@@ -225,12 +229,27 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        'assets/images/Mews-cafe-food-pic-2020.jpg',
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                      ),
+                      child:
+                          hasImage
+                              ? Image.network(
+                                imageUrl,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                                errorBuilder:
+                                    (_, __, ___) => Image.asset(
+                                      'assets/images/Mews-cafe-food-pic-2020.jpg',
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                    ),
+                              )
+                              : Image.asset(
+                                'assets/images/Mews-cafe-food-pic-2020.jpg',
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(

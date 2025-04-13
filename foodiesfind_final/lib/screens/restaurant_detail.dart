@@ -52,6 +52,10 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
           final phone = data['phoneNum'] ?? '';
           final openingHours = data['openingHours'] as List<dynamic>? ?? [];
 
+          // grab imageURL, if any
+          final imageUrl = (data['imageURL'] ?? '').toString().trim();
+          final hasImage = imageUrl.isNotEmpty;
+
           return Stack(
             children: [
               SingleChildScrollView(
@@ -59,7 +63,71 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildHeroSection(name),
+                    // Hero section with fallback logic
+                    SizedBox(
+                      height: 280,
+                      width: double.infinity,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          hasImage
+                              ? Image.network(
+                                imageUrl,
+                                fit: BoxFit.cover,
+                                errorBuilder:
+                                    (_, __, ___) => Image.asset(
+                                      'assets/images/Mews-cafe-food-pic-2020.jpg',
+                                      fit: BoxFit.cover,
+                                    ),
+                              )
+                              : Image.asset(
+                                'assets/images/Mews-cafe-food-pic-2020.jpg',
+                                fit: BoxFit.cover,
+                              ),
+                          Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [
+                                  Color.fromRGBO(0, 0, 0, 0.7),
+                                  Color.fromRGBO(0, 0, 0, 0.3),
+                                  Color.fromRGBO(0, 0, 0, 0.0),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 16,
+                            left: 16,
+                            child: Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          SafeArea(
+                            child: Align(
+                              alignment: Alignment.topLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.arrow_back,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                     _buildSegmentedToggle(),
                     if (_showGeneralInfo)
                       _buildGeneralInfoSection(
@@ -72,6 +140,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                   ],
                 ),
               ),
+
               if (!_showGeneralInfo)
                 Positioned(
                   bottom: 0,
@@ -109,63 +178,6 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildHeroSection(String name) {
-    return Stack(
-      children: [
-        SizedBox(
-          height: 280,
-          width: double.infinity,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Image.asset(
-                'assets/images/Mews-cafe-food-pic-2020.jpg',
-                fit: BoxFit.cover,
-              ),
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Color.fromRGBO(0, 0, 0, 0.7),
-                      Color.fromRGBO(0, 0, 0, 0.3),
-                      Color.fromRGBO(0, 0, 0, 0.0),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 16,
-                left: 16,
-                child: Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              SafeArea(
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
