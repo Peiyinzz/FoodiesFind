@@ -104,22 +104,25 @@ class _SignUpPageState extends State<SignUpPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Welcome to FoodiesFind. By registering or using our services, you agree to be bound by the following terms:\n\n'
+                                'Welcome to FoodiesFind. By registering or using our services, you agree to the following Terms & Conditions:\n\n'
                                 '1. User Accounts\n'
-                                'You must provide accurate and complete information during registration.\n\n'
+                                'You agree to provide accurate and complete information during registration and to keep your profile up to date.\n\n'
                                 '2. Content\n'
-                                'User-submitted content must not be offensive or infringe on others.\n\n'
-                                '3. Data Collection\n'
-                                'We use your info based on our Privacy Policy. We do not sell your data.\n\n'
+                                'You are responsible for any content you submit. Content must not be offensive, misleading, or infringe on third-party rights.\n\n'
+                                '3. Data Collection & PDPA Compliance\n'
+                                'We collect and use your personal data in accordance with the Personal Data Protection Act (PDPA) and our Privacy Policy. '
+                                'Your data will only be used to enhance your experience and will never be sold to third parties.\n\n'
                                 '4. Usage Rules\n'
-                                'No misuse or unauthorized access of data.\n\n'
+                                'You agree not to misuse the platform, engage in illegal activities, or attempt unauthorized access to data or services.\n\n'
                                 '5. Modification & Termination\n'
-                                'We may update terms or suspend accounts that violate them.\n\n'
+                                'We reserve the right to update these terms and to suspend or terminate accounts found in violation of our policies.\n\n'
                                 '6. Limitation of Liability\n'
-                                'FoodiesFind is not liable for food reactions or third-party info changes.\n\n'
-                                'By accepting, you confirm you have read and agree to abide by these Terms & Conditions.',
+                                'FoodiesFind is not liable for food allergies, health reactions, or inaccurate information provided by third-party restaurants.\n\n'
+                                '7. Acceptance\n'
+                                'By clicking accept, you confirm that you have read, understood, and agreed to comply with these Terms & Conditions and our Privacy Policy.',
                                 style: TextStyle(fontSize: 13),
                               ),
+
                               const SizedBox(height: 16),
                               Row(
                                 children: [
