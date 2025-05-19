@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../widgets/typewriter.dart';
+import '../tools/upload_synthetic_reviews.dart';
 import 'near_me.dart';
 
 class HomePage extends StatefulWidget {
@@ -196,6 +197,34 @@ class _HomePageState extends State<HomePage> {
                       line3: 'Light · Seafood',
                     ),
                   ],
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              // Temporary Button for Uploading Synthetic Reviews
+              Center(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await uploadSyntheticReviews();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('✅ Synthetic reviews uploaded!'),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.greenAccent.shade400,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 28,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text('Upload Fake Reviews'),
                 ),
               ),
 
