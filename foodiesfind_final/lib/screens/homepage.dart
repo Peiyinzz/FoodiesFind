@@ -158,7 +158,9 @@ class _HomePageState extends State<HomePage> {
                       icon: Icons.star,
                       backgroundImage:
                           'https://images.unsplash.com/photo-1600891964599-f61ba0e24092',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.pushNamed(context, '/featuredRestaurants');
+                      },
                     ),
                   ),
                 ],

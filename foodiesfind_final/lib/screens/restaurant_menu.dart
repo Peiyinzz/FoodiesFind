@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/menu.dart'; // Make sure the path is correct
+import '../models/menu.dart';
+import '../widgets/menu_item_card.dart'; // Make sure this file exists
 
 class RestaurantMenuPage extends StatefulWidget {
   final String restaurantId;
@@ -199,56 +200,11 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
                     final price = data['price'] ?? 0;
                     final imageUrl = data['imageUrl'] ?? '';
 
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(16),
-                            ),
-                            child:
-                                imageUrl.isNotEmpty
-                                    ? Image.network(
-                                      imageUrl,
-                                      height: 150,
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
-                                    )
-                                    : Container(
-                                      height: 120,
-                                      width: double.infinity,
-                                      color: Colors.grey[300],
-                                      child: const Icon(
-                                        Icons.image_not_supported,
-                                      ),
-                                    ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'RM${price.toString()}',
-                                  style: const TextStyle(color: Colors.black54),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                    return MenuItemCard(
+                      restaurantId: widget.restaurantId,
+                      dishName: name,
+                      price: (price is int ? price.toDouble() : price),
+                      imageUrl: imageUrl,
                     );
                   },
                 );

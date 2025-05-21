@@ -376,7 +376,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Divider(height: 24, thickness: 1, color: Colors.white24),
+        const Divider(height: 24, thickness: 1, color: Color(0xFF0E2223)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: ReviewSummaryWidget(restaurantId: widget.restaurantId),
@@ -707,14 +707,14 @@ class _ReviewsListState extends State<ReviewsList> {
                                               Color bg = Colors.grey.shade300;
                                               if ((dish['taste'] ?? [])
                                                   .contains(tag)) {
-                                                bg = const Color(0xFFFBAF25);
+                                                bg = const Color.fromARGB(255, 116, 198, 241);
                                               } else if ((dish['ingredients'] ??
                                                       [])
                                                   .contains(tag)) {
                                                 bg = const Color(0xFFC8E0CA);
                                               } else if ((dish['dietary'] ?? [])
                                                   .contains(tag)) {
-                                                bg = const Color(0xFF1D7D7D);
+                                                bg = const Color.fromARGB(255, 116, 211, 211);
                                               }
                                               return Chip(
                                                 label: Text(

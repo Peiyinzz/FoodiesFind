@@ -288,12 +288,11 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
                           FutureBuilder<QuerySnapshot>(
                             future:
                                 FirebaseFirestore.instance
-                                    .collection('restaurants')
-                                    .doc(doc.id)
-                                    .collection('reviews')
+                                    .collection('user_reviews')
+                                    .where('restaurantId', isEqualTo: doc.id)
                                     .get(),
-                            builder: (ctx, revSnap) {
-                              final count = revSnap.data?.docs.length ?? 0;
+                            builder: (ctx, reviewSnap) {
+                              final count = reviewSnap.data?.docs.length ?? 0;
                               return Row(
                                 children: [
                                   const Icon(
