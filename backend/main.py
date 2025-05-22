@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from firebase_admin import credentials, firestore
 import firebase_admin
 from recommend import router as recommend_router
-import uvicorn
 
 # Initialize Firebase Admin
 cred = credentials.Certificate("firebase_config.json")  # Replace with your actual service account key file path
