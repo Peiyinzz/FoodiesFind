@@ -3,10 +3,12 @@ from firebase_admin import firestore
 from typing import List
 
 router = APIRouter()
-db = firestore.client()
 
 @router.get("/recommendations/{user_id}")
 async def get_recommendations(user_id: str):
+    db = firestore.client()  # ✅ Initialize Firestore only after Firebase is ready
+
+    # Fetch user's review history to count tag preferences
     user_reviews = db.collection("user_reviews").where("userId", "==", user_id).stream()
 
     tag_counter = {}
@@ -21,7 +23,7 @@ async def get_recommendations(user_id: str):
     if not tag_counter:
         return {"message": "No user preferences found", "recommendations": []}
 
-    # Get all reviews to find popular dishes with matching tags
+    # Score all reviewed dishes based on matching tags
     all_reviews = db.collection("user_reviews").stream()
     dish_scores = {}
 
@@ -46,5 +48,6 @@ async def get_recommendations(user_id: str):
                 else:
                     dish_scores[key]["score"] += score
 
+    # Return top 10
     sorted_dishes = sorted(dish_scores.values(), key=lambda x: x["score"], reverse=True)[:10]
     return {"recommendations": sorted_dishes}
