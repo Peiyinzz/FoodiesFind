@@ -1,34 +1,30 @@
 from fastapi import FastAPI
-from firebase_admin import credentials, firestore
-import firebase_admin
+from firebase_admin import credentials, firestore, initialize_app
 from recommend import router as recommend_router
+
 import os
 import json
 
-# Initialize Firebase Admin
-#cred = credentials.Certificate("firebase_config.json")  # Replace with your actual service account key file path
-
-firebase_creds = {
+# Load Firebase from env (Railway loads it this way)
+cred_dict = {
     "type": "service_account",
-    "project_id": os.environ["FIREBASE_PROJECT_ID"],
-    "private_key_id": os.environ["FIREBASE_PRIVATE_KEY_ID"],
-    "private_key": os.environ["FIREBASE_PRIVATE_KEY"],
-    "client_email": os.environ["FIREBASE_CLIENT_EMAIL"],
-    "client_id": os.environ["FIREBASE_CLIENT_ID"],
-    "auth_uri": os.environ["FIREBASE_AUTH_URI"],
-    "token_uri": os.environ["FIREBASE_TOKEN_URI"],
-    "auth_provider_x509_cert_url": os.environ["FIREBASE_AUTH_PROVIDER_CERT_URL"],
-    "client_x509_cert_url": os.environ["FIREBASE_CLIENT_CERT_URL"]
+    "project_id": os.getenv("FIREBASE_PROJECT_ID"),
+    "private_key_id": os.getenv("FIREBASE_PRIVATE_KEY_ID"),
+    "private_key": os.getenv("FIREBASE_PRIVATE_KEY").replace('\\n', '\n'),
+    "client_email": os.getenv("FIREBASE_CLIENT_EMAIL"),
+    "client_id": os.getenv("FIREBASE_CLIENT_ID"),
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": os.getenv("FIREBASE_CLIENT_CERT_URL")
 }
-cred = credentials.Certificate(firebase_creds)
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+cred = credentials.Certificate(cred_dict)
+initialize_app(cred)
 
 app = FastAPI()
 
 @app.get("/")
-async def root():
-    return {"message": "FoodiesFind Backend Running!"}
+def root():
+    return {"message": "Backend is running!"}
 
-# Include modular recommendation router
 app.include_router(recommend_router)
