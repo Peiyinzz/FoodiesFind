@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 import '../widgets/typewriter.dart';
 import '../tools/upload_synthetic_reviews.dart';
 import 'near_me.dart';
@@ -34,8 +37,21 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<List<Map<String, dynamic>>> fetchRecommendations(String userId) async {
+    final response = await http.get(
+      Uri.parse('https://foodiesfind-production.up.railway.app/recommendations/$userId'),
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return List<Map<String, dynamic>>.from(data['recommendations']);
+    } else {
+      throw Exception('Failed to load recommendations');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
     return Scaffold(
       backgroundColor: const Color(0xFF0E2223),
       body: SafeArea(
@@ -73,9 +89,9 @@ class _HomePageState extends State<HomePage> {
                         icon: const Icon(Icons.history),
                         color: Colors.white,
                         iconSize: 26,
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/reviewsHistory');
-                        },
+                        onPressed:
+                            () =>
+                                Navigator.pushNamed(context, '/reviewsHistory'),
                       ),
                       const SizedBox(width: 8),
                       const Icon(
@@ -89,8 +105,6 @@ class _HomePageState extends State<HomePage> {
               ),
 
               const SizedBox(height: 24),
-
-              // Greeting
               Text(
                 'Hello, ${username ?? "Username"}!',
                 style: const TextStyle(
@@ -106,7 +120,6 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 24),
 
-              // Search Bar
               GestureDetector(
                 onTap: () => Navigator.pushNamed(context, '/restaurants'),
                 child: Container(
@@ -133,7 +146,6 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 30),
 
-              // Feature Banners
               Row(
                 children: [
                   Expanded(
@@ -158,17 +170,17 @@ class _HomePageState extends State<HomePage> {
                       icon: Icons.star,
                       backgroundImage:
                           'https://images.unsplash.com/photo-1600891964599-f61ba0e24092',
-                      onTap: () {
-                        Navigator.pushNamed(context, '/featuredRestaurants');
-                      },
+                      onTap:
+                          () => Navigator.pushNamed(
+                            context,
+                            '/featuredRestaurants',
+                          ),
                     ),
                   ),
                 ],
               ),
-
               const SizedBox(height: 30),
 
-              // Top Picks For You
               const Text(
                 'Top Picks For You',
                 style: TextStyle(
@@ -180,31 +192,37 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 18),
               SizedBox(
                 height: 120,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: const [
-                    _FillCard(
-                      imageUrl:
-                          'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Owned%20food%20images%2FInheritTasteCrepeCake.jpg?alt=media&token=1337b4fc-e3bd-4641-ae6b-57a15782d110',
-                      line1: 'Kenny Hills Bakery',
-                      line2: 'Mille Crepe',
-                      line3: 'Halal · Dessert',
-                    ),
-                    SizedBox(width: 12),
-                    _FillCard(
-                      imageUrl:
-                          'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Owned%20food%20images%2FSalmonMentaiAburiMaki.webp?alt=media&token=286886bd-2a9a-4997-a77c-52d112f31d7b',
-                      line1: 'Sushi Mentai',
-                      line2: 'Mentai Aburi Maki',
-                      line3: 'Light · Seafood',
-                    ),
-                  ],
+                child: FutureBuilder<List<Map<String, dynamic>>>(
+                  future: fetchRecommendations(userId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return const Text(
+                        "Error loading recommendations",
+                        style: TextStyle(color: Colors.white),
+                      );
+                    }
+                    final items = snapshot.data!;
+                    return ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: items.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        return _FillCard(
+                          imageUrl: '',
+                          line1: item['restaurantId'],
+                          line2: item['dishName'],
+                          line3: '${item['score']} pts',
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
 
               const SizedBox(height: 30),
-
-              // Temporary Button for Uploading Synthetic Reviews
               Center(
                 child: ElevatedButton(
                   onPressed: () async {
@@ -231,8 +249,6 @@ class _HomePageState extends State<HomePage> {
               ),
 
               const SizedBox(height: 30),
-
-              // Popular Dishes This Week
               const Text(
                 'Popular Dishes This Week',
                 style: TextStyle(
@@ -244,25 +260,31 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 18),
               SizedBox(
                 height: 120,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: const [
-                    _FillCard(
-                      imageUrl:
-                          'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Owned%20food%20images%2FPastaCarbonara.jpg?alt=media&token=dc5a7a68-7d83-4068-81a0-77ce91f65b8e',
-                      line1: 'Trattoria Roma',
-                      line2: 'Carbonara',
-                      line3: '43 reviews',
-                    ),
-                    SizedBox(width: 12),
-                    _FillCard(
-                      imageUrl:
-                          'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Owned%20food%20images%2FTiramisuCake.jpg?alt=media&token=60eba851-54c4-4e1c-aec3-36a7c2992521',
-                      line1: 'Dolce & Co.',
-                      line2: 'Tiramisu Cake',
-                      line3: '24 reviews',
-                    ),
-                  ],
+                child: StreamBuilder<QuerySnapshot>(
+                  stream:
+                      FirebaseFirestore.instance
+                          .collection('popular_dishes')
+                          .orderBy('updatedAt', descending: true)
+                          .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData)
+                      return const CircularProgressIndicator();
+                    final docs = snapshot.data!.docs;
+                    return ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: docs.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      itemBuilder: (context, index) {
+                        final data = docs[index].data() as Map<String, dynamic>;
+                        return _FillCard(
+                          imageUrl: data['imageURL'] ?? '',
+                          line1: data['restaurantName'] ?? '',
+                          line2: data['dishName'] ?? '',
+                          line3: '${data['count'] ?? 0} reviews',
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
             ],
@@ -331,7 +353,6 @@ class _ImageFeatureCard extends StatelessWidget {
   }
 }
 
-/// Fills entire card height with image on left and text on right.
 class _FillCard extends StatelessWidget {
   final String imageUrl;
   final String line1;
@@ -357,7 +378,6 @@ class _FillCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Full-height image
           ClipRRect(
             borderRadius: const BorderRadius.horizontal(
               left: Radius.circular(16),
@@ -369,7 +389,6 @@ class _FillCard extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-          // Text column
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
@@ -386,7 +405,7 @@ class _FillCard extends StatelessWidget {
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: 14,
                     ),
                   ),
                   const Spacer(),
