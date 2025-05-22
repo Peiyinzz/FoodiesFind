@@ -39,7 +39,9 @@ class _HomePageState extends State<HomePage> {
 
   Future<List<Map<String, dynamic>>> fetchRecommendations(String userId) async {
     final response = await http.get(
-      Uri.parse('https://foodiesfind-production.up.railway.app/recommendations/$userId'),
+      Uri.parse(
+        'https://foodiesfind-production.up.railway.app/recommendations/$userId',
+      ),
     );
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -47,6 +49,37 @@ class _HomePageState extends State<HomePage> {
     } else {
       throw Exception('Failed to load recommendations');
     }
+  }
+
+  Future<Map<String, dynamic>> fetchRestaurantAndDishInfo(
+    String restaurantId,
+    String dishName,
+  ) async {
+    final menuSnapshot =
+        await FirebaseFirestore.instance
+            .collection('restaurants')
+            .doc(restaurantId)
+            .collection('menu')
+            .where('name', isEqualTo: dishName)
+            .limit(1)
+            .get();
+
+    String imageURL = '';
+    if (menuSnapshot.docs.isNotEmpty) {
+      imageURL = menuSnapshot.docs.first.data()['imageURL'] ?? '';
+    }
+
+    final restaurantSnapshot =
+        await FirebaseFirestore.instance
+            .collection('restaurants')
+            .doc(restaurantId)
+            .get();
+
+    final data = restaurantSnapshot.data();
+    final restaurantName =
+        data != null && data['name'] != null ? data['name'] : restaurantId;
+
+    return {'restaurantName': restaurantName, 'imageURL': imageURL};
   }
 
   @override
@@ -60,7 +93,6 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -210,11 +242,40 @@ class _HomePageState extends State<HomePage> {
                       separatorBuilder: (_, __) => const SizedBox(width: 12),
                       itemBuilder: (context, index) {
                         final item = items[index];
-                        return _FillCard(
-                          imageUrl: '',
-                          line1: item['restaurantId'],
-                          line2: item['dishName'],
-                          line3: '${item['score']} pts',
+                        final restaurantId = item['restaurantId'];
+                        final dishName = item['dishName'];
+
+                        return FutureBuilder<Map<String, dynamic>>(
+                          future: fetchRestaurantAndDishInfo(
+                            restaurantId,
+                            dishName,
+                          ),
+                          builder: (context, infoSnapshot) {
+                            if (infoSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const SizedBox(
+                                width: 240,
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            } else if (infoSnapshot.hasError ||
+                                !infoSnapshot.hasData) {
+                              return const SizedBox(
+                                width: 240,
+                                child: Center(child: Text("❌")),
+                              );
+                            }
+
+                            final info = infoSnapshot.data!;
+                            return _FillCard(
+                              imageUrl: info['imageURL'] ?? '',
+                              line1: info['restaurantName'] ?? restaurantId,
+                              line2: dishName,
+                              line3: '${item['score']} pts',
+                              compact: true,
+                            );
+                          },
                         );
                       },
                     );
@@ -222,32 +283,31 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
 
-              const SizedBox(height: 30),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await uploadSyntheticReviews();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('✅ Synthetic reviews uploaded!'),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.greenAccent.shade400,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 28,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                  ),
-                  child: const Text('Upload Fake Reviews'),
-                ),
-              ),
-
+              // const SizedBox(height: 30),
+              // Center(
+              //   child: ElevatedButton(
+              //     onPressed: () async {
+              //       await uploadSyntheticReviews();
+              //       ScaffoldMessenger.of(context).showSnackBar(
+              //         const SnackBar(
+              //           content: Text('✅ Synthetic reviews uploaded!'),
+              //         ),
+              //       );
+              //     },
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: Colors.greenAccent.shade400,
+              //       foregroundColor: Colors.black,
+              //       padding: const EdgeInsets.symmetric(
+              //         horizontal: 28,
+              //         vertical: 14,
+              //       ),
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(24),
+              //       ),
+              //     ),
+              //     child: const Text('Upload Fake Reviews'),
+              //   ),
+              // ),
               const SizedBox(height: 30),
               const Text(
                 'Popular Dishes This Week',
@@ -358,19 +418,25 @@ class _FillCard extends StatelessWidget {
   final String line1;
   final String line2;
   final String line3;
+  final bool compact;
 
   const _FillCard({
     required this.imageUrl,
     required this.line1,
     required this.line2,
     required this.line3,
+    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cardHeight = compact ? 120.0 : 160.0;
+    final imageHeight = cardHeight;
+    final imageWidth = 100.0;
+
     return Container(
       width: 260,
-      height: 160,
+      height: cardHeight,
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF1B3A3B),
@@ -384,34 +450,53 @@ class _FillCard extends StatelessWidget {
             ),
             child: Image.network(
               imageUrl,
-              width: 100,
-              height: 160,
+              width: imageWidth,
+              height: imageHeight,
               fit: BoxFit.cover,
+              errorBuilder:
+                  (_, __, ___) => Container(
+                    width: imageWidth,
+                    height: imageHeight,
+                    color: Colors.grey,
+                    child: const Icon(Icons.image, color: Colors.white70),
+                  ),
             ),
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     line1,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: compact ? 11 : 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     line2,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: compact ? 13 : 14,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const Spacer(),
                   Text(
                     line3,
-                    style: const TextStyle(color: Colors.white60, fontSize: 12),
+                    style: TextStyle(
+                      color: Colors.white60,
+                      fontSize: compact ? 11 : 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
