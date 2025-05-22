@@ -27,4 +27,8 @@ app = FastAPI()
 def root():
     return {"message": "Backend is running!"}
 
+@app.get("/")
+async def healthcheck():
+    return {"status": "ok"}
+
 app.include_router(recommend_router)
