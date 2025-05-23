@@ -1,12 +1,26 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 import '../widgets/typewriter.dart';
-import '../tools/upload_synthetic_reviews.dart';
-import 'near_me.dart';
+import '../screens/near_me.dart';
+import '../widgets/top_picks_section.dart';
+import '../widgets/fill_card.dart';
+
+/// Try to load the menu item’s own image URL; returns empty string if none.
+Future<String> fetchMenuImage(String restaurantId, String dishName) async {
+  final snap =
+      await FirebaseFirestore.instance
+          .collection('restaurants')
+          .doc(restaurantId)
+          .collection('menu')
+          .where('name', isEqualTo: dishName)
+          .limit(1)
+          .get();
+
+  if (snap.docs.isEmpty) return '';
+  return (snap.docs.first.data()['imageUrl'] as String?) ?? '';
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -31,55 +45,10 @@ class _HomePageState extends State<HomePage> {
       final doc =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
       setState(() {
-        username = doc['username'];
-        profileImageUrl = doc['profileImageUrl'];
+        username = doc['username'] as String?;
+        profileImageUrl = doc['profileImageUrl'] as String?;
       });
     }
-  }
-
-  Future<List<Map<String, dynamic>>> fetchRecommendations(String userId) async {
-    final response = await http.get(
-      Uri.parse(
-        'https://foodiesfind-production.up.railway.app/recommendations/$userId',
-      ),
-    );
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return List<Map<String, dynamic>>.from(data['recommendations']);
-    } else {
-      throw Exception('Failed to load recommendations');
-    }
-  }
-
-  Future<Map<String, dynamic>> fetchRestaurantAndDishInfo(
-    String restaurantId,
-    String dishName,
-  ) async {
-    final menuSnapshot =
-        await FirebaseFirestore.instance
-            .collection('restaurants')
-            .doc(restaurantId)
-            .collection('menu')
-            .where('name', isEqualTo: dishName)
-            .limit(1)
-            .get();
-
-    String imageURL = '';
-    if (menuSnapshot.docs.isNotEmpty) {
-      imageURL = menuSnapshot.docs.first.data()['imageURL'] ?? '';
-    }
-
-    final restaurantSnapshot =
-        await FirebaseFirestore.instance
-            .collection('restaurants')
-            .doc(restaurantId)
-            .get();
-
-    final data = restaurantSnapshot.data();
-    final restaurantName =
-        data != null && data['name'] != null ? data['name'] : restaurantId;
-
-    return {'restaurantName': restaurantName, 'imageURL': imageURL};
   }
 
   @override
@@ -93,6 +62,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Profile & header...
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -102,11 +72,11 @@ class _HomePageState extends State<HomePage> {
                       radius: 28,
                       backgroundColor: Colors.grey.shade300,
                       backgroundImage:
-                          profileImageUrl != null && profileImageUrl!.isNotEmpty
+                          profileImageUrl?.isNotEmpty == true
                               ? NetworkImage(profileImageUrl!)
                               : null,
                       child:
-                          profileImageUrl == null || profileImageUrl!.isEmpty
+                          profileImageUrl?.isEmpty != false
                               ? const Icon(
                                 Icons.person,
                                 color: Colors.white,
@@ -152,6 +122,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 24),
 
+              // Search bar...
               GestureDetector(
                 onTap: () => Navigator.pushNamed(context, '/restaurants'),
                 child: Container(
@@ -176,8 +147,10 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 30),
 
+              // Feature cards...
               Row(
                 children: [
                   Expanded(
@@ -211,104 +184,15 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
+
               const SizedBox(height: 30),
 
-              const Text(
-                'Top Picks For You',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                height: 120,
-                child: FutureBuilder<List<Map<String, dynamic>>>(
-                  future: fetchRecommendations(userId),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return const Text(
-                        "Error loading recommendations",
-                        style: TextStyle(color: Colors.white),
-                      );
-                    }
-                    final items = snapshot.data!;
-                    return ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: items.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 12),
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-                        final restaurantId = item['restaurantId'];
-                        final dishName = item['dishName'];
+              // Top Picks modular widget
+              TopPicksSection(userId: userId),
 
-                        return FutureBuilder<Map<String, dynamic>>(
-                          future: fetchRestaurantAndDishInfo(
-                            restaurantId,
-                            dishName,
-                          ),
-                          builder: (context, infoSnapshot) {
-                            if (infoSnapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const SizedBox(
-                                width: 240,
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            } else if (infoSnapshot.hasError ||
-                                !infoSnapshot.hasData) {
-                              return const SizedBox(
-                                width: 240,
-                                child: Center(child: Text("❌")),
-                              );
-                            }
-
-                            final info = infoSnapshot.data!;
-                            return _FillCard(
-                              imageUrl: info['imageURL'] ?? '',
-                              line1: info['restaurantName'] ?? restaurantId,
-                              line2: dishName,
-                              line3: '${item['score']} pts',
-                              compact: true,
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-
-              // const SizedBox(height: 30),
-              // Center(
-              //   child: ElevatedButton(
-              //     onPressed: () async {
-              //       await uploadSyntheticReviews();
-              //       ScaffoldMessenger.of(context).showSnackBar(
-              //         const SnackBar(
-              //           content: Text('✅ Synthetic reviews uploaded!'),
-              //         ),
-              //       );
-              //     },
-              //     style: ElevatedButton.styleFrom(
-              //       backgroundColor: Colors.greenAccent.shade400,
-              //       foregroundColor: Colors.black,
-              //       padding: const EdgeInsets.symmetric(
-              //         horizontal: 28,
-              //         vertical: 14,
-              //       ),
-              //       shape: RoundedRectangleBorder(
-              //         borderRadius: BorderRadius.circular(24),
-              //       ),
-              //     ),
-              //     child: const Text('Upload Fake Reviews'),
-              //   ),
-              // ),
               const SizedBox(height: 30),
+
+              // Popular Dishes This Week
               const Text(
                 'Popular Dishes This Week',
                 style: TextStyle(
@@ -318,29 +202,46 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 18),
+
               SizedBox(
-                height: 120,
+                height: 130,
                 child: StreamBuilder<QuerySnapshot>(
                   stream:
                       FirebaseFirestore.instance
                           .collection('popular_dishes')
                           .orderBy('updatedAt', descending: true)
                           .snapshots(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData)
-                      return const CircularProgressIndicator();
-                    final docs = snapshot.data!.docs;
+                  builder: (context, snap) {
+                    if (!snap.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final docs = snap.data!.docs;
                     return ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: docs.length,
                       separatorBuilder: (_, __) => const SizedBox(width: 12),
-                      itemBuilder: (context, index) {
-                        final data = docs[index].data() as Map<String, dynamic>;
-                        return _FillCard(
-                          imageUrl: data['imageURL'] ?? '',
-                          line1: data['restaurantName'] ?? '',
-                          line2: data['dishName'] ?? '',
-                          line3: '${data['count'] ?? 0} reviews',
+                      itemBuilder: (context, i) {
+                        final data = docs[i].data() as Map<String, dynamic>;
+                        final restaurantId = data['restaurantId'] as String;
+                        final dishName = data['dishName'] as String;
+                        final restImage = data['imageURL'] as String? ?? '';
+
+                        // Try menu image first, then fallback
+                        return FutureBuilder<String>(
+                          future: fetchMenuImage(restaurantId, dishName),
+                          builder: (context, menuSnap) {
+                            final imageToShow =
+                                (menuSnap.hasData && menuSnap.data!.isNotEmpty)
+                                    ? menuSnap.data!
+                                    : restImage;
+                            return FillCard(
+                              imageUrl: imageToShow,
+                              line1: data['restaurantName'] as String? ?? '',
+                              line2: dishName,
+                              line3: '${data['count'] ?? 0} recent reviews',
+                              compact: true,
+                            );
+                          },
                         );
                       },
                     );
@@ -408,101 +309,6 @@ class _ImageFeatureCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _FillCard extends StatelessWidget {
-  final String imageUrl;
-  final String line1;
-  final String line2;
-  final String line3;
-  final bool compact;
-
-  const _FillCard({
-    required this.imageUrl,
-    required this.line1,
-    required this.line2,
-    required this.line3,
-    this.compact = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cardHeight = compact ? 120.0 : 160.0;
-    final imageHeight = cardHeight;
-    final imageWidth = 100.0;
-
-    return Container(
-      width: 260,
-      height: cardHeight,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1B3A3B),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.horizontal(
-              left: Radius.circular(16),
-            ),
-            child: Image.network(
-              imageUrl,
-              width: imageWidth,
-              height: imageHeight,
-              fit: BoxFit.cover,
-              errorBuilder:
-                  (_, __, ___) => Container(
-                    width: imageWidth,
-                    height: imageHeight,
-                    color: Colors.grey,
-                    child: const Icon(Icons.image, color: Colors.white70),
-                  ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    line1,
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: compact ? 11 : 12,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    line2,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: compact ? 13 : 14,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Spacer(),
-                  Text(
-                    line3,
-                    style: TextStyle(
-                      color: Colors.white60,
-                      fontSize: compact ? 11 : 12,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

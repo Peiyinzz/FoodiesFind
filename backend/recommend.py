@@ -1,53 +1,62 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from firebase_admin import firestore
-from typing import List
 
 router = APIRouter()
 
 @router.get("/recommendations/{user_id}")
 async def get_recommendations(user_id: str):
-    db = firestore.client()  # ✅ Initialize Firestore only after Firebase is ready
+    db = firestore.client()
 
-    # Fetch user's review history to count tag preferences
-    user_reviews = db.collection("user_reviews").where("userId", "==", user_id).stream()
+    # 1) Load the user's profile
+    user_ref = db.collection("users").document(user_id)
+    user_snap = user_ref.get()
+    if not user_snap.exists:
+        raise HTTPException(status_code=404, detail="User not found")
+    user_data = user_snap.to_dict() or {}
+    allergies     = set(user_data.get("allergies", []))
+    dietary_prefs = set(user_data.get("dietaryPreferences", []))
+    taste_prefs   = set(user_data.get("tastePreferences", []))
 
-    tag_counter = {}
-
-    for review in user_reviews:
-        data = review.to_dict()
-        for dish in data.get("dishes", []):
-            for tag_group in ["taste", "ingredients", "dietary"]:
-                for tag in dish.get(tag_group, []):
-                    tag_counter[tag] = tag_counter.get(tag, 0) + 1
-
-    if not tag_counter:
-        return {"message": "No user preferences found", "recommendations": []}
-
-    # Score all reviewed dishes based on matching tags
-    all_reviews = db.collection("user_reviews").stream()
+    # 2) Aggregate all dishes from reviews
     dish_scores = {}
-
+    all_reviews = db.collection("user_reviews").stream()
     for review in all_reviews:
         data = review.to_dict()
         rest_id = data.get("restaurantId")
         for dish in data.get("dishes", []):
-            dish_name = dish.get("name")
-            score = 0
-            for tag_group in ["taste", "ingredients", "dietary"]:
-                for tag in dish.get(tag_group, []):
-                    score += tag_counter.get(tag, 0)
+            name = dish.get("name")
+            # collect tags
+            tags = set(dish.get("dietary", []) +
+                       dish.get("taste", []) +
+                       dish.get("ingredients", []))
+            # 3) Skip if any allergy tag is present
+            if tags & allergies:
+                continue
 
-            if score > 0:
-                key = f"{rest_id}_{dish_name}"
-                if key not in dish_scores:
-                    dish_scores[key] = {
-                        "restaurantId": rest_id,
-                        "dishName": dish_name,
-                        "score": score
-                    }
-                else:
-                    dish_scores[key]["score"] += score
+            # 4) Score = 2*dietaryMatches + 1*tasteMatches
+            diet_matches  = len(tags & dietary_prefs)
+            taste_matches = len(tags & taste_prefs)
+            score = 2 * diet_matches + 1 * taste_matches
 
-    # Return top 10
-    sorted_dishes = sorted(dish_scores.values(), key=lambda x: x["score"], reverse=True)[:10]
+            # ignore zero-score dishes
+            if score <= 0:
+                continue
+
+            key = f"{rest_id}_{name}"
+            # keep the highest score if dish appears multiple times
+            existing = dish_scores.get(key)
+            if existing is None or existing["score"] < score:
+                dish_scores[key] = {
+                    "restaurantId": rest_id,
+                    "dishName":     name,
+                    "score":        score
+                }
+
+    # 5) Return the top 10
+    sorted_dishes = sorted(
+        dish_scores.values(),
+        key=lambda x: x["score"],
+        reverse=True
+    )[:10]
+
     return {"recommendations": sorted_dishes}

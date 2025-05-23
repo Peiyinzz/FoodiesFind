@@ -9,6 +9,7 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import '../services/google_places_service.dart';
 import '../config.dart';
 import 'restaurant_detail.dart';
+import '../widgets/restaurant_popup.dart'; // <-- new import
 
 class NearbyMapScreen extends StatefulWidget {
   final String? restaurantId; // Optional parameter
@@ -334,6 +335,47 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     });
   }
 
+  /// Computes the most “popular” dish by (mention count × average rating).
+  Future<String> _fetchPopularDish(String restaurantId) async {
+    final qs =
+        await FirebaseFirestore.instance
+            .collection('user_reviews')
+            .where('restaurantId', isEqualTo: restaurantId)
+            .get();
+
+    final Map<String, int> counts = {};
+    final Map<String, double> sumRatings = {};
+    final Map<String, int> ratingCounts = {};
+
+    for (var doc in qs.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final rating = (data['rating'] as num?)?.toDouble() ?? 0.0;
+      final dishes =
+          (data['dishes'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
+
+      for (var dish in dishes) {
+        final name = (dish['name'] as String?) ?? '';
+        if (name.isEmpty) continue;
+        counts[name] = (counts[name] ?? 0) + 1;
+        sumRatings[name] = (sumRatings[name] ?? 0) + rating;
+        ratingCounts[name] = (ratingCounts[name] ?? 0) + 1;
+      }
+    }
+
+    String popular = '';
+    double bestScore = -1.0;
+    counts.forEach((name, count) {
+      final avg = sumRatings[name]! / ratingCounts[name]!;
+      final score = count * avg;
+      if (score > bestScore) {
+        bestScore = score;
+        popular = name;
+      }
+    });
+
+    return popular;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -382,104 +424,32 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
                     ),
                   ),
                   if (!_isDirectionsMode && _selectedRestaurant != null)
-                    _buildBottomInfoPopup(_selectedRestaurant!),
+                    RestaurantPopup(
+                      restaurantDoc: _selectedRestaurant!,
+                      distanceKm: _distances[_selectedRestaurant!.id] ?? 0,
+                      popularDishFuture: _fetchPopularDish(
+                        _selectedRestaurant!.id,
+                      ),
+                      isDirectionsMode: _isDirectionsMode,
+                      travelDistanceText: _travelDistanceText,
+                      travelDurationText: _travelDurationText,
+                      etaText: _etaText,
+                      onShowDirections: _showRouteToRestaurant,
+                      onViewMore: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (_) => RestaurantDetailPage(
+                                  restaurantId: _selectedRestaurant!.id,
+                                ),
+                          ),
+                        );
+                      },
+                    ),
                   if (_isDirectionsMode) _buildDirectionsOverlay(),
                 ],
               ),
-    );
-  }
-
-  Widget _buildBottomInfoPopup(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    final name = data['name'] ?? 'Unnamed';
-    final address = data['address'] ?? 'Address unavailable';
-    final rating = (data['rating'] ?? 0).toString();
-    final distance = _distances[doc.id]?.toStringAsFixed(1) ?? '?';
-
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF1B3A3B),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              name,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(address, style: const TextStyle(color: Colors.white70)),
-            const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "⭐ $rating     📍 $distance km away",
-                  style: const TextStyle(color: Colors.white),
-                ),
-                TextButton(
-                  onPressed: () => _showRouteToRestaurant(doc),
-                  child: const Text(
-                    'Show Directions',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Popular Dish: [dish]',
-              style: TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 12),
-            Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFBAF25),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (_) => RestaurantDetailPage(restaurantId: doc.id),
-                    ),
-                  );
-                },
-                child: const Text(
-                  'View More',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
