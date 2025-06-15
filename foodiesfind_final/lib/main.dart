@@ -16,6 +16,7 @@ import 'package:foodiesfind_final/screens/manage_item.dart';
 import 'package:foodiesfind_final/screens/manage_category.dart';
 import 'package:foodiesfind_final/screens/near_me.dart';
 import 'package:foodiesfind_final/screens/featured_restaurants.dart';
+import 'package:foodiesfind_final/screens/manage_restaurant.dart';
 
 import 'screens/homepage.dart';
 import 'screens/restaurantlist.dart';
@@ -183,6 +184,13 @@ class MyApp extends StatelessWidget {
           case '/featuredRestaurants':
             return MaterialPageRoute(
               builder: (_) => const FeaturedRestaurantPage(),
+            );
+
+          case '/manageRestaurant':
+            final args = settings.arguments as Map<String, dynamic>? ?? {};
+            final restaurantId = args['restaurantId'] as String? ?? '';
+            return MaterialPageRoute(
+              builder: (_) => ManageRestaurantPage(restaurantId: restaurantId),
             );
         }
 
