@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 
 import 'package:foodiesfind_final/screens/sign_up.dart';
@@ -15,6 +16,7 @@ import 'package:foodiesfind_final/screens/manage_item.dart';
 import 'package:foodiesfind_final/screens/manage_category.dart';
 import 'package:foodiesfind_final/screens/near_me.dart';
 import 'package:foodiesfind_final/screens/featured_restaurants.dart';
+
 import 'screens/homepage.dart';
 import 'screens/restaurantlist.dart';
 import 'theme.dart';
@@ -53,13 +55,19 @@ class MyApp extends StatelessWidget {
       title: 'FoodiesFind',
       debugShowCheckedModeBanner: false,
       theme: appTheme,
-      home: const SignUpPage(),
+      home: const HomePage(), // ✅ Start with homepage
 
-      // ✅ Dynamic route generation with argument support
       onGenerateRoute: (settings) {
+        final user = FirebaseAuth.instance.currentUser;
+
         if (settings.name == '/userprofile') {
           final args = settings.arguments;
-
+          if (user == null) {
+            return MaterialPageRoute(
+              builder:
+                  (_) => const UserProfilePage(initialUsername: '', email: ''),
+            );
+          }
           if (args != null && args is Map<String, String>) {
             return MaterialPageRoute(
               builder:
@@ -76,7 +84,6 @@ class MyApp extends StatelessWidget {
           }
         }
 
-        // Static fallback routes
         switch (settings.name) {
           case '/signup':
             return MaterialPageRoute(builder: (_) => const SignUpPage());
@@ -86,9 +93,13 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(builder: (_) => const HomePage());
           case '/restaurants':
             return MaterialPageRoute(builder: (_) => RestaurantListingPage());
+
           case '/reviewform':
             final args = settings.arguments as Map<String, dynamic>;
             final restaurantId = args['restaurantId'] ?? '';
+            if (user == null) {
+              return MaterialPageRoute(builder: (_) => const HomePage());
+            }
             return MaterialPageRoute(
               builder: (_) => ReviewFormPage(restaurantId: restaurantId),
             );
@@ -104,6 +115,7 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(
               builder: (_) => const RestaurantMenuPage(restaurantId: ''),
             );
+
           case '/uploadmenu':
             final args = settings.arguments;
             if (args != null && args is Map<String, String>) {
@@ -119,6 +131,9 @@ class MyApp extends StatelessWidget {
             );
 
           case '/reviewsHistory':
+            if (user == null) {
+              return MaterialPageRoute(builder: (_) => const HomePage());
+            }
             return MaterialPageRoute(builder: (_) => const ReviewHistoryPage());
 
           case '/manageMenu':
@@ -171,9 +186,10 @@ class MyApp extends StatelessWidget {
             );
         }
 
-        // Unknown route fallback
         return MaterialPageRoute(
-          builder: (_) => Scaffold(body: Center(child: Text('Page not found'))),
+          builder:
+              (_) =>
+                  const Scaffold(body: Center(child: Text('Page not found'))),
         );
       },
     );
