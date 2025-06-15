@@ -20,6 +20,7 @@ class _ManageItemPageState extends State<ManageItemPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   String? _selectedCategory;
+  bool _showCategoryDropdown = false; // NEW
   File? _imageFile;
   bool _isSaving = false;
   String? _imageUrl;
@@ -87,9 +88,7 @@ class _ManageItemPageState extends State<ManageItemPage> {
             .whereType<String>()
             .toSet()
             .toList();
-    setState(() {
-      _categoryList = categories;
-    });
+    setState(() => _categoryList = categories);
   }
 
   Future<void> _loadItemData() async {
@@ -140,7 +139,7 @@ class _ManageItemPageState extends State<ManageItemPage> {
         'price': double.tryParse(_priceController.text.trim()) ?? 0.0,
         'category': _selectedCategory ?? '',
         'imageUrl': uploadedImageUrl ?? '',
-        'tags': [], // will be updated later via aggregation if needed
+        'tags': [],
         'editorTags': {
           'taste': selectedTasteTags,
           'dietary': selectedDietaryTags,
@@ -152,6 +151,7 @@ class _ManageItemPageState extends State<ManageItemPage> {
           .collection('restaurants')
           .doc(widget.restaurantId)
           .collection('menu');
+
       if (widget.itemId != null) {
         await ref.doc(widget.itemId).update(itemData);
       } else {
@@ -228,39 +228,44 @@ class _ManageItemPageState extends State<ManageItemPage> {
           key: _formKey,
           child: ListView(
             children: [
+              // Image picker
               GestureDetector(
                 onTap: _pickImage,
                 child: Container(
                   height: 140,
-                  width: double.infinity,
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey.shade300),
                     borderRadius: BorderRadius.circular(12),
                     color: Colors.white,
                   ),
-                  child:
-                      _imageFile != null
-                          ? Image.file(_imageFile!, fit: BoxFit.cover)
-                          : (_imageUrl != null && _imageUrl!.isNotEmpty)
-                          ? Image.network(_imageUrl!, fit: BoxFit.cover)
-                          : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(
-                                Icons.add_photo_alternate_outlined,
-                                color: Colors.grey,
-                                size: 32,
-                              ),
-                              SizedBox(height: 6),
-                              Text(
-                                'Add Photo',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            ],
-                          ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child:
+                        _imageFile != null
+                            ? Image.file(_imageFile!, fit: BoxFit.cover)
+                            : (_imageUrl?.isNotEmpty == true
+                                ? Image.network(_imageUrl!, fit: BoxFit.cover)
+                                : Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: const [
+                                    Icon(
+                                      Icons.add_photo_alternate_outlined,
+                                      color: Colors.grey,
+                                      size: 32,
+                                    ),
+                                    SizedBox(height: 6),
+                                    Text(
+                                      'Add Photo',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  ],
+                                )),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
+
+              // Item Name
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -271,10 +276,11 @@ class _ManageItemPageState extends State<ManageItemPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                validator:
-                    (val) => val == null || val.isEmpty ? 'Enter name' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Enter name' : null,
               ),
               const SizedBox(height: 12),
+
+              // Price
               TextFormField(
                 controller: _priceController,
                 keyboardType: TextInputType.number,
@@ -286,67 +292,96 @@ class _ManageItemPageState extends State<ManageItemPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                validator:
-                    (val) => val == null || val.isEmpty ? 'Enter price' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Enter price' : null,
               ),
               const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                isExpanded: true,
+
+              // CATEGORY (inline dropdown)
+              InputDecorator(
                 decoration: InputDecoration(
                   labelText: 'Category',
                   filled: true,
                   fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 14,
-                  ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                dropdownColor: Colors.white,
-                menuMaxHeight: 200, // ✅ Shows ~4 items with scrollbar
-                icon: const Icon(Icons.arrow_drop_down),
-                items:
-                    _categoryList.map((cat) {
-                      return DropdownMenuItem<String>(
-                        value: cat,
-                        child: Text(
-                          cat,
-                          style: Theme.of(context).textTheme.bodyMedium,
+                child: InkWell(
+                  onTap:
+                      () => setState(
+                        () => _showCategoryDropdown = !_showCategoryDropdown,
+                      ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _selectedCategory ?? 'Select category',
+                        style: TextStyle(
+                          color:
+                              _selectedCategory == null
+                                  ? Colors.grey
+                                  : Colors.black,
                         ),
-                      );
-                    }).toList(),
-                onChanged: (val) => setState(() => _selectedCategory = val),
-                validator:
-                    (val) =>
-                        val == null || val.isEmpty ? 'Select category' : null,
+                      ),
+                      Icon(
+                        _showCategoryDropdown
+                            ? Icons.arrow_drop_up
+                            : Icons.arrow_drop_down,
+                      ),
+                    ],
+                  ),
+                ),
               ),
+
+              if (_showCategoryDropdown)
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.white,
+                  ),
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    child: SizedBox(
+                      // show at most 4 items (each ~56px high)
+                      height:
+                          (_categoryList.length > 4
+                              ? 4 * 56.0
+                              : _categoryList.length * 56.0),
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        children:
+                            _categoryList.map((cat) {
+                              return ListTile(
+                                title: Text(cat),
+                                onTap: () {
+                                  setState(() {
+                                    _selectedCategory = cat;
+                                    _showCategoryDropdown = false;
+                                  });
+                                },
+                              );
+                            }).toList(),
+                      ),
+                    ),
+                  ),
+                ),
 
               const SizedBox(height: 16),
 
-              // Editor Tag Selectors
+              // Tag selectors (unchanged)
               buildTagSelectorBox(
                 title: "Taste Tags",
                 selectedTags: selectedTasteTags,
                 allOptions: tasteOptions,
-                chipColor: Colors.blue.shade50,
-                chipTextColor: Colors.blue.shade800,
                 expanded: showTasteTags,
                 onToggle: () => setState(() => showTasteTags = !showTasteTags),
-                onTagToggle: (tag) {
-                  setState(
-                    () =>
-                        selectedTasteTags.contains(tag)
-                            ? selectedTasteTags.remove(tag)
-                            : selectedTasteTags.add(tag),
-                  );
-                },
+                onTagToggle:
+                    (tag) => setState(() {
+                      selectedTasteTags.contains(tag)
+                          ? selectedTasteTags.remove(tag)
+                          : selectedTasteTags.add(tag);
+                    }),
                 onTagRemove:
                     (tag) => setState(() => selectedTasteTags.remove(tag)),
               ),
@@ -354,19 +389,15 @@ class _ManageItemPageState extends State<ManageItemPage> {
                 title: "Dietary Tags",
                 selectedTags: selectedDietaryTags,
                 allOptions: dietaryOptions,
-                chipColor: Colors.green.shade50,
-                chipTextColor: Colors.green.shade800,
                 expanded: showDietaryTags,
                 onToggle:
                     () => setState(() => showDietaryTags = !showDietaryTags),
-                onTagToggle: (tag) {
-                  setState(
-                    () =>
-                        selectedDietaryTags.contains(tag)
-                            ? selectedDietaryTags.remove(tag)
-                            : selectedDietaryTags.add(tag),
-                  );
-                },
+                onTagToggle:
+                    (tag) => setState(() {
+                      selectedDietaryTags.contains(tag)
+                          ? selectedDietaryTags.remove(tag)
+                          : selectedDietaryTags.add(tag);
+                    }),
                 onTagRemove:
                     (tag) => setState(() => selectedDietaryTags.remove(tag)),
               ),
@@ -374,30 +405,30 @@ class _ManageItemPageState extends State<ManageItemPage> {
                 title: "Ingredient Tags",
                 selectedTags: selectedIngredientTags,
                 allOptions: ingredientOptions,
-                chipColor: Colors.orange.shade50,
-                chipTextColor: Colors.orange.shade800,
                 expanded: showIngredientTags,
                 onToggle:
                     () => setState(
                       () => showIngredientTags = !showIngredientTags,
                     ),
-                onTagToggle: (tag) {
-                  setState(
-                    () =>
-                        selectedIngredientTags.contains(tag)
-                            ? selectedIngredientTags.remove(tag)
-                            : selectedIngredientTags.add(tag),
-                  );
-                },
+                onTagToggle:
+                    (tag) => setState(() {
+                      selectedIngredientTags.contains(tag)
+                          ? selectedIngredientTags.remove(tag)
+                          : selectedIngredientTags.add(tag);
+                    }),
                 onTagRemove:
                     (tag) => setState(() => selectedIngredientTags.remove(tag)),
               ),
+
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isSaving ? null : _saveItem,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFC8E0CA),
                   padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 child: Text(
                   _isSaving
@@ -416,81 +447,66 @@ class _ManageItemPageState extends State<ManageItemPage> {
     required String title,
     required List<String> selectedTags,
     required List<String> allOptions,
-    required Color chipColor,
-    required Color chipTextColor,
     required bool expanded,
     required VoidCallback onToggle,
     required void Function(String) onTagToggle,
     required void Function(String) onTagRemove,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 12),
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          margin: const EdgeInsets.only(top: 6),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children:
-                          selectedTags.map((tag) {
-                            return Chip(
-                              label: Text(tag),
-                              backgroundColor: chipColor,
-                              labelStyle: TextStyle(color: chipTextColor),
-                              deleteIcon: const Icon(Icons.close, size: 16),
-                              onDeleted: () => onTagRemove(tag),
-                            );
-                          }).toList(),
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      expanded ? Icons.expand_less : Icons.expand_more,
-                    ),
-                    onPressed: onToggle,
-                  ),
-                ],
-              ),
-              if (expanded)
-                SizedBox(
-                  height: 140,
-                  child: Scrollbar(
-                    thumbVisibility: true,
-                    child: ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      children:
-                          allOptions.map((tag) {
-                            return CheckboxListTile(
-                              dense: true,
-                              contentPadding: const EdgeInsets.only(left: 8.0),
-                              title: Text(
-                                tag,
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                              value: selectedTags.contains(tag),
-                              onChanged: (_) => onTagToggle(tag),
-                            );
-                          }).toList(),
-                    ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: title,
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children:
+                        selectedTags.map((tag) {
+                          return Chip(
+                            label: Text(tag),
+                            backgroundColor: Colors.grey.shade200,
+                            onDeleted: () => onTagRemove(tag),
+                          );
+                        }).toList(),
                   ),
                 ),
-            ],
-          ),
+                IconButton(
+                  icon: Icon(expanded ? Icons.expand_less : Icons.expand_more),
+                  onPressed: onToggle,
+                ),
+              ],
+            ),
+            if (expanded)
+              SizedBox(
+                height: 140,
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children:
+                        allOptions.map((tag) {
+                          return CheckboxListTile(
+                            dense: true,
+                            title: Text(tag),
+                            value: selectedTags.contains(tag),
+                            onChanged: (_) => onTagToggle(tag),
+                          );
+                        }).toList(),
+                  ),
+                ),
+              ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
