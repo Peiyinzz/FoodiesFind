@@ -134,6 +134,29 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                               ),
                             ),
                           ),
+                          SafeArea(
+                            child: Align(
+                              alignment: Alignment.topRight,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/manageRestaurant',
+                                      arguments: {
+                                        'restaurantId': widget.restaurantId,
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
