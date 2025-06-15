@@ -38,6 +38,7 @@ class _ManageRestaurantPageState extends State<ManageRestaurantPage> {
     'Vietnamese',
   ];
   String? _selectedCuisine;
+  bool _showCuisineDropdown = false; // ← NEW FLAG
 
   File? _pickedImage;
   String? _existingImageUrl;
@@ -70,9 +71,7 @@ class _ManageRestaurantPageState extends State<ManageRestaurantPage> {
 
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() => _pickedImage = File(picked.path));
-    }
+    if (picked != null) setState(() => _pickedImage = File(picked.path));
   }
 
   Future<void> _saveRestaurant() async {
@@ -240,9 +239,8 @@ class _ManageRestaurantPageState extends State<ManageRestaurantPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Cuisine Type dropdown
-                      DropdownButtonFormField<String>(
-                        value: _selectedCuisine,
+                      // — inline Cuisine dropdown —
+                      InputDecorator(
                         decoration: InputDecoration(
                           labelText: 'Cuisine Type',
                           filled: true,
@@ -251,21 +249,66 @@ class _ManageRestaurantPageState extends State<ManageRestaurantPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        items:
-                            _cuisineOptions.map((cuisine) {
-                              return DropdownMenuItem(
-                                value: cuisine,
-                                child: Text(cuisine),
-                              );
-                            }).toList(),
-                        onChanged:
-                            (val) => setState(() => _selectedCuisine = val),
-                        validator:
-                            (v) =>
-                                v == null || v.isEmpty
-                                    ? 'Select cuisine'
-                                    : null,
+                        child: InkWell(
+                          onTap:
+                              () => setState(
+                                () =>
+                                    _showCuisineDropdown =
+                                        !_showCuisineDropdown,
+                              ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _selectedCuisine ?? 'Select cuisine',
+                                style: TextStyle(
+                                  color:
+                                      _selectedCuisine == null
+                                          ? Colors.grey
+                                          : Colors.black,
+                                ),
+                              ),
+                              Icon(
+                                _showCuisineDropdown
+                                    ? Icons.arrow_drop_up
+                                    : Icons.arrow_drop_down,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
+                      if (_showCuisineDropdown)
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.white,
+                          ),
+                          child: Scrollbar(
+                            thumbVisibility: true,
+                            child: SizedBox(
+                              height:
+                                  _cuisineOptions.length > 4
+                                      ? 4 * 56.0
+                                      : _cuisineOptions.length * 56.0,
+                              child: ListView(
+                                padding: EdgeInsets.zero,
+                                children:
+                                    _cuisineOptions.map((cuisine) {
+                                      return ListTile(
+                                        title: Text(cuisine),
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedCuisine = cuisine;
+                                            _showCuisineDropdown = false;
+                                          });
+                                        },
+                                      );
+                                    }).toList(),
+                              ),
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 16),
 
                       // Opening Hours
