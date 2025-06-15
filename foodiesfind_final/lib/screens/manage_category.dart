@@ -119,8 +119,15 @@ class _ManageCategoryPageState extends State<ManageCategoryPage> {
     final isEditing = widget.categoryName != null;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit Category' : 'Add Category'),
+        title: Text(
+          isEditing ? 'Edit Category' : 'Add Category',
+          style: const TextStyle(color: Colors.black),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
         actions: [
           if (isEditing)
             IconButton(
@@ -139,6 +146,8 @@ class _ManageCategoryPageState extends State<ManageCategoryPage> {
                 controller: _categoryController,
                 decoration: InputDecoration(
                   labelText: 'Category Name',
+                  filled: true,
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -151,6 +160,7 @@ class _ManageCategoryPageState extends State<ManageCategoryPage> {
                 onPressed: _isSaving ? null : _saveCategory,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFC8E0CA),
+                  foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(
                     vertical: 14,
                     horizontal: 10,

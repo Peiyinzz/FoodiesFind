@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../widgets/tags_info.dart';
+import '../widgets/login_prompt_dialog.dart';
 
 class UserProfilePage extends StatefulWidget {
   final String initialUsername;
@@ -21,6 +22,7 @@ class UserProfilePage extends StatefulWidget {
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
+  bool isGuest = false;
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
 
@@ -71,12 +73,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
   @override
   void initState() {
     super.initState();
+
+    final user = FirebaseAuth.instance.currentUser;
+    isGuest = user == null;
+
     _usernameController = TextEditingController(text: widget.initialUsername);
     _emailController = TextEditingController(text: widget.email);
-    if (widget.initialUsername.isEmpty || widget.email.isEmpty) {
-      _loadUserDataFromFirestore();
-    } else {
-      _loadExistingProfileImage();
+
+    if (!isGuest) {
+      if (widget.initialUsername.isEmpty || widget.email.isEmpty) {
+        _loadUserDataFromFirestore();
+      } else {
+        _loadExistingProfileImage();
+      }
     }
   }
 
@@ -423,26 +432,25 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-Widget _sectionTitleWithInfo(String text, {required VoidCallback onInfoTap}) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8.0),
-    child: Row(
-      mainAxisSize: MainAxisSize.min, // shrink to fit
-      children: [
-        Text(
-          text,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        const SizedBox(width: 6),     // small gap
-        GestureDetector(
-          onTap: onInfoTap,
-          child: const Icon(Icons.info_outline, size: 20, color: Colors.grey),
-        ),
-      ],
-    ),
-  );
-}
-
+  Widget _sectionTitleWithInfo(String text, {required VoidCallback onInfoTap}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min, // shrink to fit
+        children: [
+          Text(
+            text,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const SizedBox(width: 6), // small gap
+          GestureDetector(
+            onTap: onInfoTap,
+            child: const Icon(Icons.info_outline, size: 20, color: Colors.grey),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _textField(TextEditingController controller, {bool enabled = true}) {
     return TextField(
