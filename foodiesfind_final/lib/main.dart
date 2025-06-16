@@ -18,6 +18,9 @@ import 'package:foodiesfind_final/screens/near_me.dart';
 import 'package:foodiesfind_final/screens/featured_restaurants.dart';
 import 'package:foodiesfind_final/screens/manage_restaurant.dart';
 
+// ← import your new dashboard screen:
+import 'package:foodiesfind_final/screens/foodies_dashboard.dart';
+
 import 'screens/homepage.dart';
 import 'screens/restaurantlist.dart';
 import 'theme.dart';
@@ -56,11 +59,12 @@ class MyApp extends StatelessWidget {
       title: 'FoodiesFind',
       debugShowCheckedModeBanner: false,
       theme: appTheme,
-      home: const HomePage(), // ✅ Start with homepage
+      home: const HomePage(),
 
       onGenerateRoute: (settings) {
         final user = FirebaseAuth.instance.currentUser;
 
+        // ── User Profile ─────────────────────────────────────────
         if (settings.name == '/userprofile') {
           final args = settings.arguments;
           if (user == null) {
@@ -69,7 +73,7 @@ class MyApp extends StatelessWidget {
                   (_) => const UserProfilePage(initialUsername: '', email: ''),
             );
           }
-          if (args != null && args is Map<String, String>) {
+          if (args is Map<String, String>) {
             return MaterialPageRoute(
               builder:
                   (_) => UserProfilePage(
@@ -77,21 +81,23 @@ class MyApp extends StatelessWidget {
                     email: args['email'] ?? '',
                   ),
             );
-          } else {
-            return MaterialPageRoute(
-              builder:
-                  (_) => const UserProfilePage(initialUsername: '', email: ''),
-            );
           }
+          return MaterialPageRoute(
+            builder:
+                (_) => const UserProfilePage(initialUsername: '', email: ''),
+          );
         }
 
         switch (settings.name) {
           case '/signup':
             return MaterialPageRoute(builder: (_) => const SignUpPage());
+
           case '/login':
             return MaterialPageRoute(builder: (_) => const SignInPage());
+
           case '/home':
             return MaterialPageRoute(builder: (_) => const HomePage());
+
           case '/restaurants':
             return MaterialPageRoute(builder: (_) => RestaurantListingPage());
 
@@ -106,29 +112,17 @@ class MyApp extends StatelessWidget {
             );
 
           case '/restaurantMenu':
-            final args = settings.arguments;
-            if (args != null && args is Map<String, String>) {
-              final restaurantId = args['restaurantId'] ?? '';
-              return MaterialPageRoute(
-                builder: (_) => RestaurantMenuPage(restaurantId: restaurantId),
-              );
-            }
+            final args = settings.arguments as Map<String, String>?;
+            final restaurantId = args?['restaurantId'] ?? '';
             return MaterialPageRoute(
-              builder: (_) => const RestaurantMenuPage(restaurantId: ''),
+              builder: (_) => RestaurantMenuPage(restaurantId: restaurantId),
             );
 
           case '/uploadmenu':
-            final args = settings.arguments;
-            if (args != null && args is Map<String, String>) {
-              return MaterialPageRoute(
-                builder:
-                    (_) => MenuUploadPage(
-                      restaurantId: args['restaurantId'] ?? '',
-                    ),
-              );
-            }
+            final args = settings.arguments as Map<String, String>?;
+            final restaurantId = args?['restaurantId'] ?? '';
             return MaterialPageRoute(
-              builder: (_) => const MenuUploadPage(restaurantId: ''),
+              builder: (_) => MenuUploadPage(restaurantId: restaurantId),
             );
 
           case '/reviewsHistory':
@@ -138,20 +132,10 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(builder: (_) => const ReviewHistoryPage());
 
           case '/manageMenu':
-            final args = settings.arguments;
-            if (args != null && args is Map<String, String>) {
-              return MaterialPageRoute(
-                builder:
-                    (_) => ManageMenuPage(
-                      restaurantId: args['restaurantId'] ?? '',
-                    ),
-              );
-            }
+            final args = settings.arguments as Map<String, String>?;
+            final restaurantId = args?['restaurantId'] ?? '';
             return MaterialPageRoute(
-              builder:
-                  (_) => const Scaffold(
-                    body: Center(child: Text('Missing restaurantId')),
-                  ),
+              builder: (_) => ManageMenuPage(restaurantId: restaurantId),
             );
 
           case '/manageItem':
@@ -160,7 +144,7 @@ class MyApp extends StatelessWidget {
               builder:
                   (_) => ManageItemPage(
                     restaurantId: args['restaurantId'],
-                    itemId: args['itemId'], // can be null
+                    itemId: args['itemId'],
                   ),
             );
 
@@ -175,8 +159,8 @@ class MyApp extends StatelessWidget {
             );
 
           case '/nearMe':
-            final args = settings.arguments as Map<String, dynamic>? ?? {};
-            final restaurantId = args['restaurantId'] ?? '';
+            final args = settings.arguments as Map<String, dynamic>?;
+            final restaurantId = args?['restaurantId'] ?? '';
             return MaterialPageRoute(
               builder: (_) => NearbyMapScreen(restaurantId: restaurantId),
             );
@@ -187,13 +171,20 @@ class MyApp extends StatelessWidget {
             );
 
           case '/manageRestaurant':
-            final args = settings.arguments as Map<String, dynamic>? ?? {};
-            final restaurantId = args['restaurantId'] as String? ?? '';
+            final args = settings.arguments as Map<String, dynamic>?;
+            final restaurantId = args?['restaurantId'] ?? '';
             return MaterialPageRoute(
               builder: (_) => ManageRestaurantPage(restaurantId: restaurantId),
             );
+
+          // ── NEW: Foodies Dashboard ────────────────────────────────
+          case '/dashboard':
+            return MaterialPageRoute(
+              builder: (_) => const FoodiesDashboardPage(),
+            );
         }
 
+        // ── Fallback ───────────────────────────────────────────────
         return MaterialPageRoute(
           builder:
               (_) =>
