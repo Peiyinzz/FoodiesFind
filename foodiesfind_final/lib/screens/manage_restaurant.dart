@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import '../widgets/success_popup.dart';
 
 class ManageRestaurantPage extends StatefulWidget {
   final String restaurantId;
@@ -31,14 +32,14 @@ class _ManageRestaurantPageState extends State<ManageRestaurantPage> {
     'Malay',
     'Indian',
     'Italian',
-    'American',
+    'Western',
     'Thai',
     'Korean',
     'Mexican',
     'Vietnamese',
   ];
   String? _selectedCuisine;
-  bool _showCuisineDropdown = false; // ← NEW FLAG
+  bool _showCuisineDropdown = false;
 
   File? _pickedImage;
   String? _existingImageUrl;
@@ -105,10 +106,22 @@ class _ManageRestaurantPageState extends State<ManageRestaurantPage> {
         .doc(widget.restaurantId)
         .update(updated);
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Restaurant updated')));
-    Navigator.pop(context);
+    _showSuccessDialog();
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black54,
+      builder:
+          (_) =>
+              const SuccessPopup(message: 'Restaurant updated successfully!'),
+    );
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.of(context, rootNavigator: true).pop(); // close popup
+      Navigator.of(context).pop(); // close page
+    });
   }
 
   @override
@@ -239,7 +252,7 @@ class _ManageRestaurantPageState extends State<ManageRestaurantPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      // — inline Cuisine dropdown —
+                      // Inline Cuisine dropdown
                       InputDecorator(
                         decoration: InputDecoration(
                           labelText: 'Cuisine Type',
@@ -262,6 +275,7 @@ class _ManageRestaurantPageState extends State<ManageRestaurantPage> {
                               Text(
                                 _selectedCuisine ?? 'Select cuisine',
                                 style: TextStyle(
+                                  fontSize: 16,
                                   color:
                                       _selectedCuisine == null
                                           ? Colors.grey
