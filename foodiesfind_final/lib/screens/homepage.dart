@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 
 import '../widgets/typewriter.dart';
 import '../screens/near_me.dart';
+import '../screens/foodies_dashboard.dart'; // ← import your dashboard
 import '../widgets/top_picks_section.dart';
 import '../widgets/fill_card.dart';
+import '../tools/upload_synthetic_reviews.dart';
 
 /// Try to load the menu item’s own image URL; returns empty string if none.
 Future<String> fetchMenuImage(String restaurantId, String dishName) async {
@@ -62,7 +64,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile & header...
+              // — Profile & header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -76,7 +78,7 @@ class _HomePageState extends State<HomePage> {
                               ? NetworkImage(profileImageUrl!)
                               : null,
                       child:
-                          profileImageUrl?.isEmpty != false
+                          profileImageUrl?.isNotEmpty != true
                               ? const Icon(
                                 Icons.person,
                                 color: Colors.white,
@@ -96,10 +98,14 @@ class _HomePageState extends State<HomePage> {
                                 Navigator.pushNamed(context, '/reviewsHistory'),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(
-                        Icons.notifications_none,
-                        color: Colors.white,
-                        size: 28,
+                      IconButton(
+                        icon: const Icon(
+                          Icons.dashboard_outlined, // ← dashboard icon
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                        onPressed:
+                            () => Navigator.pushNamed(context, '/dashboard'),
                       ),
                     ],
                   ),
@@ -122,7 +128,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 24),
 
-              // Search bar...
+              // — Search bar
               GestureDetector(
                 onTap: () => Navigator.pushNamed(context, '/restaurants'),
                 child: Container(
@@ -150,7 +156,7 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 30),
 
-              // Feature cards...
+              // — Feature cards
               Row(
                 children: [
                   Expanded(
@@ -187,12 +193,12 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 30),
 
-              // Top Picks modular widget
+              // — Top Picks
               TopPicksSection(userId: userId),
 
               const SizedBox(height: 30),
 
-              // Popular Dishes This Week
+              // — Popular Dishes This Week
               const Text(
                 'Popular Dishes This Week',
                 style: TextStyle(
@@ -226,7 +232,6 @@ class _HomePageState extends State<HomePage> {
                         final dishName = data['dishName'] as String;
                         final restImage = data['imageURL'] as String? ?? '';
 
-                        // Try menu image first, then fallback
                         return FutureBuilder<String>(
                           future: fetchMenuImage(restaurantId, dishName),
                           builder: (context, menuSnap) {
@@ -246,6 +251,40 @@ class _HomePageState extends State<HomePage> {
                       },
                     );
                   },
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              // — DEBUG: upload synthetic reviews
+              Center(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await uploadSyntheticReviews();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Synthetic reviews uploaded!'),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Color(0xFF145858)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(60),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text(
+                    'Upload Synthetic Reviews',
+                    style: TextStyle(
+                      color: Color(0xFF145858),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],
