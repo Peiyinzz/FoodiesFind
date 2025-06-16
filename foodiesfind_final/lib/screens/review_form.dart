@@ -171,9 +171,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
 
   Widget _buildDishSection(int index) {
     final dish = dishes[index];
-    // calculate the width for the dropdown
-    final fieldWidth =
-        MediaQuery.of(context).size.width - 20 * 2 - 12 * 2; // adjust paddings
+    final fieldWidth = MediaQuery.of(context).size.width - 40;
 
     return Padding(
       padding: const EdgeInsets.only(top: 28),
@@ -212,7 +210,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ===== Modified Autocomplete =====
+                // ===== Autocomplete with scrollbar & max height =====
                 Autocomplete<String>(
                   optionsBuilder: (value) {
                     final q = value.text.toLowerCase();
@@ -241,39 +239,46 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                     );
                   },
                   optionsViewBuilder: (context, onSelected, options) {
+                    final fieldWidth = MediaQuery.of(context).size.width - 60;
                     return Align(
                       alignment: Alignment.topLeft,
-                      child: Material(
-                        elevation: 2,
-                        borderRadius: BorderRadius.circular(8),
-                        child: SizedBox(
-                          width: fieldWidth,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 200),
-                            child: ListView.builder(
-                              padding: EdgeInsets.zero,
-                              itemCount: options.length,
-                              itemBuilder: (ctx, i) {
-                                final option = options.elementAt(i);
-                                final isSelected =
-                                    option == dish.nameController.text;
-                                return InkWell(
-                                  onTap: () => onSelected(option),
-                                  child: Container(
-                                    color:
-                                        isSelected
-                                            ? const Color(
-                                              0xFFC8E0CA,
-                                            ).withOpacity(0.3)
-                                            : null,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                    child: Text(option),
-                                  ),
-                                );
-                              },
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 20),
+                        child: Material(
+                          elevation: 2,
+                          borderRadius: BorderRadius.circular(8),
+                          child: SizedBox(
+                            width: fieldWidth,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 200),
+                              child: Scrollbar(
+                                thumbVisibility: true,
+                                child: ListView.builder(
+                                  padding: EdgeInsets.zero,
+                                  itemCount: options.length,
+                                  itemBuilder: (ctx, i) {
+                                    final option = options.elementAt(i);
+                                    final isSelected =
+                                        option == dish.nameController.text;
+                                    return InkWell(
+                                      onTap: () => onSelected(option),
+                                      child: Container(
+                                        color:
+                                            isSelected
+                                                ? const Color(
+                                                  0xFFC8E0CA,
+                                                ).withOpacity(0.3)
+                                                : null,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 12,
+                                        ),
+                                        child: Text(option),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -283,7 +288,6 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                 ),
                 const SizedBox(height: 12),
 
-                // ===== /Autocomplete =====
                 _buildInfoLabel('Taste', tasteTagDescriptions, 'Taste Tags'),
                 const SizedBox(height: 8),
                 Wrap(
@@ -399,94 +403,100 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Rating:'),
-            RatingBar.builder(
-              initialRating: 0,
-              minRating: 1,
-              direction: Axis.horizontal,
-              allowHalfRating: false,
-              itemCount: 5,
-              itemBuilder:
-                  (_, __) => const Icon(Icons.star, color: Colors.orange),
-              onRatingUpdate: (r) => setState(() => rating = r),
-            ),
-            const SizedBox(height: 16),
-            const Text('Describe your experience:'),
-            const SizedBox(height: 6),
-            TextField(
-              controller: _experienceController,
-              maxLines: 5,
-              decoration: InputDecoration(
-                hintText: 'How was the ambience, food and service?',
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.all(12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (scroll) {
+          FocusScope.of(context).unfocus();
+          return false;
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Rating:'),
+              RatingBar.builder(
+                initialRating: 0,
+                minRating: 1,
+                direction: Axis.horizontal,
+                allowHalfRating: false,
+                itemCount: 5,
+                itemBuilder:
+                    (_, __) => const Icon(Icons.star, color: Colors.orange),
+                onRatingUpdate: (r) => setState(() => rating = r),
               ),
-            ),
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: _pickImages,
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                  color: Colors.white,
-                ),
-                child: const Center(
-                  child: Text(
-                    '+ Add photo(s)',
-                    style: TextStyle(color: Colors.black54),
+              const SizedBox(height: 16),
+              const Text('Describe your experience:'),
+              const SizedBox(height: 6),
+              TextField(
+                controller: _experienceController,
+                maxLines: 5,
+                decoration: InputDecoration(
+                  hintText: 'How was the ambience, food and service?',
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.all(12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
                 ),
               ),
-            ),
-            if (selectedPhotos.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children:
-                    selectedPhotos.map((xfile) {
-                      return ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          File(xfile.path),
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
-                      );
-                    }).toList(),
-              ),
-            ],
-            ...List.generate(dishes.length, (i) => _buildDishSection(i)),
-            const SizedBox(height: 20),
-            Center(
-              child: TextButton.icon(
-                onPressed: _addDish,
-                icon: const Icon(Icons.add, color: Colors.black),
-                label: const Text(
-                  'Add another dish',
-                  style: TextStyle(color: Colors.black),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: _pickImages,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                    color: Colors.white,
+                  ),
+                  child: const Center(
+                    child: Text(
+                      '+ Add photo(s)',
+                      style: TextStyle(color: Colors.black54),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+              if (selectedPhotos.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children:
+                      selectedPhotos.map((xfile) {
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(
+                            File(xfile.path),
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                        );
+                      }).toList(),
+                ),
+              ],
+              ...List.generate(dishes.length, (i) => _buildDishSection(i)),
+              const SizedBox(height: 20),
+              Center(
+                child: TextButton.icon(
+                  onPressed: _addDish,
+                  icon: const Icon(Icons.add, color: Colors.black),
+                  label: const Text(
+                    'Add another dish',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
