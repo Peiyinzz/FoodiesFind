@@ -43,14 +43,18 @@ class _MenuItemCardState extends State<MenuItemCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 270, // ✅ Slightly taller
+      height: 320,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(blurRadius: 4, offset: Offset(0, 2), color: Colors.black12),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // taller image
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child:
@@ -60,14 +64,22 @@ class _MenuItemCardState extends State<MenuItemCard> {
                       height: 120,
                       width: double.infinity,
                       fit: BoxFit.cover,
+                      errorBuilder:
+                          (_, __, ___) => Container(
+                            height: 120,
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.broken_image, size: 40),
+                          ),
                     )
                     : Container(
                       height: 120,
                       width: double.infinity,
                       color: Colors.grey[300],
-                      child: const Icon(Icons.image_not_supported),
+                      child: const Icon(Icons.image_not_supported, size: 40),
                     ),
           ),
+
+          // name & price
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Column(
@@ -75,35 +87,43 @@ class _MenuItemCardState extends State<MenuItemCard> {
               children: [
                 Text(
                   widget.dishName,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis, // allow wrap to next line
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'RM${widget.price.toStringAsFixed(2)}',
-                  style: const TextStyle(color: Colors.black54),
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
                 ),
               ],
             ),
           ),
-          const Spacer(), // ✅ Pushes tags to the bottom
+
+          const Spacer(),
+
+          // tags
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
             child:
                 isLoading
                     ? const SizedBox(
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
                     )
                     : Text(
-                      popularTags.join(' · '), // Combine tags into one line
+                      popularTags.join(' · '),
                       style: const TextStyle(
                         fontSize: 10,
                         color: Colors.black54,
                       ),
                       maxLines: 1,
-                      overflow:
-                          TextOverflow
-                              .ellipsis, // Prevent overflow in narrow cards
+                      overflow: TextOverflow.ellipsis,
                     ),
           ),
         ],
@@ -112,39 +132,65 @@ class _MenuItemCardState extends State<MenuItemCard> {
   }
 }
 
-// 🔁 Firestore tag fetcher
+/// Fetches top-3 tags by combining both editorTags and review-derived tags
 Future<List<String>> getPopularTagsForDish(
   String restaurantId,
   String dishName,
 ) async {
-  final reviewSnapshot =
+  final tagCounts = <String, int>{};
+
+  // 1) First pull in the item’s own editorTags
+  final menuQuery =
       await FirebaseFirestore.instance
-          .collection('user_reviews')
-          .where('restaurantId', isEqualTo: restaurantId)
+          .collection('restaurants')
+          .doc(restaurantId)
+          .collection('menu')
+          .where('name', isEqualTo: dishName)
+          .limit(1)
           .get();
 
-  final Map<String, int> tagCounts = {};
-
-  for (var review in reviewSnapshot.docs) {
-    final data = review.data();
-    final List<dynamic> dishes = data['dishes'] ?? [];
-
-    for (var dish in dishes) {
-      if (dish['name'] == dishName) {
-        final List<dynamic> tags = [
-          ...(dish['taste'] ?? []),
-          ...(dish['ingredients'] ?? []),
-          ...(dish['dietary'] ?? []),
-        ];
-        for (var tag in tags) {
-          tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
+  if (menuQuery.docs.isNotEmpty) {
+    final ed =
+        menuQuery.docs.first.data()['editorTags'] as Map<String, dynamic>?;
+    if (ed != null) {
+      for (final category in ['taste', 'ingredients', 'dietary']) {
+        final List<dynamic>? list = ed[category] as List<dynamic>?;
+        if (list != null) {
+          for (final tag in list) {
+            tagCounts[tag as String] = (tagCounts[tag] ?? 0) + 1;
+          }
         }
       }
     }
   }
 
-  final sortedTags =
+  // 2) Then tally up from every review of that dish
+  final reviews =
+      await FirebaseFirestore.instance
+          .collection('user_reviews')
+          .where('restaurantId', isEqualTo: restaurantId)
+          .get();
+
+  for (final doc in reviews.docs) {
+    final data = doc.data();
+    final List<dynamic> dishes = data['dishes'] ?? [];
+    for (final dish in dishes) {
+      if (dish['name'] == dishName) {
+        for (final category in ['taste', 'ingredients', 'dietary']) {
+          final List<dynamic>? list = dish[category] as List<dynamic>?;
+          if (list != null) {
+            for (final tag in list) {
+              tagCounts[tag as String] = (tagCounts[tag] ?? 0) + 1;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 3) Sort by count desc and return top-3 keys
+  final sorted =
       tagCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
-  return sortedTags.take(3).map((e) => e.key).toList();
+  return sorted.take(3).map((e) => e.key).toList();
 }
