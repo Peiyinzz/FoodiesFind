@@ -16,13 +16,12 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
   bool sortByRating = false;
   bool filterByRating = false;
   bool sortByDistance = false;
-
   Position? currentPosition;
 
   @override
   void initState() {
     super.initState();
-    // example fallback position
+    // fallback position
     currentPosition = Position(
       latitude: 5.3564,
       longitude: 100.3015,
@@ -84,26 +83,24 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    onChanged: (value) {
-                      setState(() => searchQuery = value.toLowerCase());
-                    },
+                    onChanged:
+                        (v) => setState(() => searchQuery = v.toLowerCase()),
                   ),
                 ),
                 const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.tune, color: Colors.white),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      backgroundColor: const Color(0xFF1B3A3B),
-                      context: context,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(20),
+                  onPressed:
+                      () => showModalBottomSheet(
+                        backgroundColor: const Color(0xFF1B3A3B),
+                        context: context,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20),
+                          ),
                         ),
+                        builder: (_) => _buildManageBottomSheet(),
                       ),
-                      builder: (_) => _buildManageBottomSheet(),
-                    );
-                  },
                 ),
               ],
             ),
@@ -113,210 +110,247 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
       body: StreamBuilder<QuerySnapshot>(
         stream:
             FirebaseFirestore.instance.collection('restaurants').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
+        builder: (context, restSnap) {
+          if (restSnap.hasError) {
             return Center(
               child: Text(
-                'Error: ${snapshot.error}',
+                'Error: ${restSnap.error}',
                 style: const TextStyle(color: Colors.white),
               ),
             );
           }
-          if (!snapshot.hasData) {
+          if (!restSnap.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
+          final restaurantDocs = restSnap.data!.docs;
 
-          // filter & sort
-          var docs = snapshot.data!.docs.toList();
-
-          // text filter
-          docs =
-              docs.where((doc) {
-                final name = (doc['name'] ?? '').toString().toLowerCase();
-                return name.contains(searchQuery);
-              }).toList();
-
-          // rating filter
-          if (filterByRating) {
-            docs =
-                docs
-                    .where((doc) => (doc['rating'] ?? 0).toDouble() >= 4.0)
-                    .toList();
-          }
-
-          // sorting
-          if (sortByDistance) {
-            docs.sort((a, b) {
-              double da = 1e6, db = 1e6;
-              if (currentPosition != null && a['loc'] is GeoPoint) {
-                final geo = a['loc'] as GeoPoint;
-                da = calculateDistance(
-                  currentPosition!.latitude,
-                  currentPosition!.longitude,
-                  geo.latitude,
-                  geo.longitude,
-                );
+          // load all reviews once
+          return FutureBuilder<QuerySnapshot>(
+            future: FirebaseFirestore.instance.collection('user_reviews').get(),
+            builder: (ctx, reviewSnap) {
+              if (reviewSnap.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
               }
-              if (currentPosition != null && b['loc'] is GeoPoint) {
-                final geo = b['loc'] as GeoPoint;
-                db = calculateDistance(
-                  currentPosition!.latitude,
-                  currentPosition!.longitude,
-                  geo.latitude,
-                  geo.longitude,
-                );
-              }
-              return da.compareTo(db);
-            });
-          } else if (sortByRating) {
-            docs.sort(
-              (a, b) => (b['rating'] ?? 0).toDouble().compareTo(
-                (a['rating'] ?? 0).toDouble(),
-              ),
-            );
-          } else {
-            docs.sort(
-              (a, b) => ((a['name'] ?? '') as String).compareTo(
-                (b['name'] ?? '') as String,
-              ),
-            );
-          }
-
-          if (docs.isEmpty) {
-            return const Center(
-              child: Text(
-                'No restaurants found.',
-                style: TextStyle(color: Colors.white70),
-              ),
-            );
-          }
-
-          return ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            itemCount: docs.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 24),
-            itemBuilder: (context, index) {
-              final doc = docs[index];
-              final data = doc.data() as Map<String, dynamic>;
-              final name = data['name'] ?? 'Unnamed';
-              final rating = data['rating']?.toString() ?? '0.0';
-
-              double? distanceKm;
-              if (data['loc'] is GeoPoint && currentPosition != null) {
-                final geo = data['loc'] as GeoPoint;
-                distanceKm = calculateDistance(
-                  currentPosition!.latitude,
-                  currentPosition!.longitude,
-                  geo.latitude,
-                  geo.longitude,
+              if (reviewSnap.hasError) {
+                return const Center(
+                  child: Text(
+                    'Error loading reviews.',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 );
               }
 
-              // decide which image to show
-              final imageUrl = (data['imageURL'] ?? '').toString().trim();
-              final hasImage = imageUrl.isNotEmpty;
+              // map restaurantId → review count
+              final counts = <String, int>{};
+              for (var r in reviewSnap.data!.docs) {
+                final rid = r['restaurantId'] as String? ?? '';
+                if (rid.isEmpty) continue;
+                counts[rid] = (counts[rid] ?? 0) + 1;
+              }
 
-              return GestureDetector(
-                onTap:
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (_) => RestaurantDetailPage(restaurantId: doc.id),
-                      ),
-                    ),
-                child: Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child:
-                          hasImage
-                              ? Image.network(
-                                imageUrl,
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.cover,
-                                errorBuilder:
-                                    (_, __, ___) => Image.asset(
-                                      'assets/images/Mews-cafe-food-pic-2020.jpg',
-                                      width: 80,
-                                      height: 80,
-                                      fit: BoxFit.cover,
-                                    ),
-                              )
-                              : Image.asset(
-                                'assets/images/Mews-cafe-food-pic-2020.jpg',
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.cover,
-                              ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+              // 1) filter by search & rating
+              var docs =
+                  restaurantDocs.where((d) {
+                    final name = (d['name'] ?? '').toString().toLowerCase();
+                    return name.contains(searchQuery);
+                  }).toList();
+              if (filterByRating) {
+                docs =
+                    docs
+                        .where((d) => (d['rating'] ?? 0).toDouble() >= 4.0)
+                        .toList();
+              }
+
+              // 2) sort
+              if (sortByDistance) {
+                docs.sort((a, b) {
+                  double da = 1e6, db = 1e6;
+                  if (currentPosition != null && a['loc'] is GeoPoint) {
+                    final g = a['loc'] as GeoPoint;
+                    da = calculateDistance(
+                      currentPosition!.latitude,
+                      currentPosition!.longitude,
+                      g.latitude,
+                      g.longitude,
+                    );
+                  }
+                  if (currentPosition != null && b['loc'] is GeoPoint) {
+                    final g = b['loc'] as GeoPoint;
+                    db = calculateDistance(
+                      currentPosition!.latitude,
+                      currentPosition!.longitude,
+                      g.latitude,
+                      g.longitude,
+                    );
+                  }
+                  return da.compareTo(db);
+                });
+              } else if (sortByRating) {
+                docs.sort(
+                  (a, b) => (b['rating'] ?? 0).toDouble().compareTo(
+                    (a['rating'] ?? 0).toDouble(),
+                  ),
+                );
+              } else {
+                // composite relevance
+                docs.sort((a, b) {
+                  final da = a.data() as Map<String, dynamic>;
+                  final db = b.data() as Map<String, dynamic>;
+                  final aRating = (da['rating'] ?? 0).toDouble();
+                  final bRating = (db['rating'] ?? 0).toDouble();
+                  final aVisits = (da['visitCount'] ?? 0) as int;
+                  final bVisits = (db['visitCount'] ?? 0) as int;
+                  final aRevs = counts[a.id] ?? 0;
+                  final bRevs = counts[b.id] ?? 0;
+                  final aScore = aRating + log(aRevs + 1) + log(aVisits + 1);
+                  final bScore = bRating + log(bRevs + 1) + log(bVisits + 1);
+                  return bScore.compareTo(aScore);
+                });
+              }
+
+              if (docs.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'No restaurants found.',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                );
+              }
+
+              return ListView.separated(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
+                ),
+                itemCount: docs.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 24),
+                itemBuilder: (ctx, i) {
+                  final doc = docs[i];
+                  final data = doc.data() as Map<String, dynamic>;
+                  final name = data['name'] ?? 'Unnamed';
+                  final rating = data['rating']?.toString() ?? '0.0';
+
+                  double? distanceKm;
+                  if (data['loc'] is GeoPoint && currentPosition != null) {
+                    final g = data['loc'] as GeoPoint;
+                    distanceKm = calculateDistance(
+                      currentPosition!.latitude,
+                      currentPosition!.longitude,
+                      g.latitude,
+                      g.longitude,
+                    );
+                  }
+
+                  final imageUrl = (data['imageURL'] ?? '').toString().trim();
+                  final hasImage = imageUrl.isNotEmpty;
+
+                  return GestureDetector(
+                    onTap:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (_) =>
+                                    RestaurantDetailPage(restaurantId: doc.id),
                           ),
-                          const SizedBox(height: 4),
-                          Row(
+                        ),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child:
+                              hasImage
+                                  ? Image.network(
+                                    imageUrl,
+                                    width: 80,
+                                    height: 80,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (_, __, ___) => Image.asset(
+                                          'assets/images/Mews-cafe-food-pic-2020.jpg',
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                        ),
+                                  )
+                                  : Image.asset(
+                                    'assets/images/Mews-cafe-food-pic-2020.jpg',
+                                    width: 80,
+                                    height: 80,
+                                    fit: BoxFit.cover,
+                                  ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(
-                                Icons.location_on,
-                                size: 14,
-                                color: Colors.white54,
-                              ),
-                              const SizedBox(width: 4),
                               Text(
-                                distanceKm != null
-                                    ? '${distanceKm.toStringAsFixed(1)} km away'
-                                    : 'Distance unknown',
+                                name,
                                 style: const TextStyle(
-                                  color: Colors.white54,
-                                  fontSize: 13,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                 ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          FutureBuilder<QuerySnapshot>(
-                            future:
-                                FirebaseFirestore.instance
-                                    .collection('user_reviews')
-                                    .where('restaurantId', isEqualTo: doc.id)
-                                    .get(),
-                            builder: (ctx, reviewSnap) {
-                              final count = reviewSnap.data?.docs.length ?? 0;
-                              return Row(
+                              const SizedBox(height: 4),
+                              Row(
                                 children: [
                                   const Icon(
-                                    Icons.star,
-                                    color: Colors.amber,
-                                    size: 16,
+                                    Icons.location_on,
+                                    size: 14,
+                                    color: Colors.white54,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '$rating ($count reviews)',
+                                    distanceKm != null
+                                        ? '${distanceKm.toStringAsFixed(1)} km away'
+                                        : 'Distance unknown',
                                     style: const TextStyle(
-                                      color: Colors.white70,
+                                      color: Colors.white54,
                                       fontSize: 13,
                                     ),
                                   ),
                                 ],
-                              );
-                            },
+                              ),
+                              const SizedBox(height: 6),
+                              FutureBuilder<QuerySnapshot>(
+                                future:
+                                    FirebaseFirestore.instance
+                                        .collection('user_reviews')
+                                        .where(
+                                          'restaurantId',
+                                          isEqualTo: doc.id,
+                                        )
+                                        .get(),
+                                builder: (c, snap) {
+                                  final count = snap.data?.docs.length ?? 0;
+                                  return Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.star,
+                                        color: Colors.amber,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '$rating ($count reviews)',
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               );
             },
           );
@@ -343,7 +377,7 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
           ListTile(
             leading: const Icon(Icons.sort_by_alpha, color: Colors.white),
             title: const Text(
-              'Sort by Name (A-Z)',
+              'Sort by Name (A–Z)',
               style: TextStyle(color: Colors.white),
             ),
             onTap: () {
@@ -374,13 +408,11 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
               color: Colors.white,
             ),
             title: const Text(
-              'Sort by Distance (Nearest First)',
+              'Sort by Distance',
               style: TextStyle(color: Colors.white),
             ),
             onTap: () {
-              setState(() {
-                sortByDistance = !sortByDistance;
-              });
+              setState(() => sortByDistance = !sortByDistance);
               Navigator.pop(context);
             },
           ),
