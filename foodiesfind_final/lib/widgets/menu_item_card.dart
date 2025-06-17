@@ -54,32 +54,35 @@ class _MenuItemCardState extends State<MenuItemCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // taller image
+          // Image section with asset fallback
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child:
                 widget.imageUrl.isNotEmpty
                     ? Image.network(
                       widget.imageUrl,
+                      height: 120, // make it a bit taller if you like
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) {
+                        // network load failed → fallback to asset
+                        return Image.asset(
+                          'assets/images/FoodiesFindSquareLogo.png',
+                          height: 120,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        );
+                      },
+                    )
+                    : Image.asset(
+                      'assets/images/FoodiesFindSquareLogo.png',
                       height: 120,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder:
-                          (_, __, ___) => Container(
-                            height: 120,
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.broken_image, size: 40),
-                          ),
-                    )
-                    : Container(
-                      height: 120,
-                      width: double.infinity,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.image_not_supported, size: 40),
                     ),
           ),
 
-          // name & price
+          // Name & price
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Column(
@@ -92,7 +95,7 @@ class _MenuItemCardState extends State<MenuItemCard> {
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 2,
-                  overflow: TextOverflow.ellipsis, // allow wrap to next line
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -105,7 +108,7 @@ class _MenuItemCardState extends State<MenuItemCard> {
 
           const Spacer(),
 
-          // tags
+          // Tags
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
             child:
@@ -139,7 +142,7 @@ Future<List<String>> getPopularTagsForDish(
 ) async {
   final tagCounts = <String, int>{};
 
-  // 1) First pull in the item’s own editorTags
+  // 1) Pull in the item’s own editorTags
   final menuQuery =
       await FirebaseFirestore.instance
           .collection('restaurants')
