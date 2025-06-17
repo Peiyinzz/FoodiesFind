@@ -185,8 +185,8 @@ class _SignUpPageState extends State<SignUpPage> {
           child: Column(
             children: [
               Center(
-                child: Image.network(
-                  'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/Logo%2Ffoodiesfind_plainlogo.png?alt=media&token=d8c5030f-0802-42e3-84c4-61da0a1a7fc4',
+                child: Image.asset(
+                  'assets/images/foodiesfind_plainlogo.png',
                   width: 220,
                   height: 140,
                 ),
