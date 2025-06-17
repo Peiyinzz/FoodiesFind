@@ -58,21 +58,23 @@ class _ManageRestaurantPageState extends State<ManageRestaurantPage> {
             .get();
     final data = doc.data() ?? {};
 
-    _nameCtrl.text = (data['name'] as String?) ?? '';
-    _addressCtrl.text = (data['address'] as String?) ?? '';
-    _phoneCtrl.text = (data['phoneNum'] as String?) ?? '';
-    _existingImageUrl = (data['imageURL'] as String?) ?? '';
+    _nameCtrl.text = data['name'] as String? ?? '';
+    _addressCtrl.text = data['address'] as String? ?? '';
+    _phoneCtrl.text = data['phoneNum'] as String? ?? '';
+    _existingImageUrl = data['imageURL'] as String? ?? '';
     _hoursCtrl.text =
         (data['openingHours'] as List<dynamic>?)?.cast<String>().join('\n') ??
         '';
-    _selectedCuisine = (data['cuisineType'] as String?) ?? null;
+    _selectedCuisine = data['cuisineType'] as String?;
 
     setState(() => _loading = false);
   }
 
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) setState(() => _pickedImage = File(picked.path));
+    if (picked != null) {
+      setState(() => _pickedImage = File(picked.path));
+    }
   }
 
   Future<void> _saveRestaurant() async {
@@ -80,9 +82,12 @@ class _ManageRestaurantPageState extends State<ManageRestaurantPage> {
     setState(() => _isSaving = true);
 
     String? uploadUrl = _existingImageUrl;
+
     if (_pickedImage != null) {
+      // must match your Storage rule at /restaurant_logos/{restaurantId}/…
+      final filename = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final ref = FirebaseStorage.instance.ref().child(
-        'restaurant_covers/${DateTime.now().millisecondsSinceEpoch}.jpg',
+        'restaurant_logos/${widget.restaurantId}/$filename',
       );
       await ref.putFile(_pickedImage!);
       uploadUrl = await ref.getDownloadURL();
@@ -252,7 +257,7 @@ class _ManageRestaurantPageState extends State<ManageRestaurantPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Inline Cuisine dropdown
+                      // Cuisine dropdown
                       InputDecorator(
                         decoration: InputDecoration(
                           labelText: 'Cuisine Type',
@@ -351,13 +356,23 @@ class _ManageRestaurantPageState extends State<ManageRestaurantPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: Text(
-                          _isSaving ? 'Saving...' : 'Save Changes',
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child:
+                            _isSaving
+                                ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.black,
+                                  ),
+                                )
+                                : const Text(
+                                  'Save Changes',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                       ),
                     ],
                   ),

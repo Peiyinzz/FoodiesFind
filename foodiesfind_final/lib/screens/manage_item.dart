@@ -17,16 +17,15 @@ class ManageItemPage extends StatefulWidget {
 
 class _ManageItemPageState extends State<ManageItemPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _priceController = TextEditingController();
   String? _selectedCategory;
-  bool _showCategoryDropdown = false; // NEW
+  bool _showCategoryDropdown = false;
   File? _imageFile;
   bool _isSaving = false;
   String? _imageUrl;
 
   List<String> _categoryList = [];
-
   List<String> selectedTasteTags = [];
   List<String> selectedDietaryTags = [];
   List<String> selectedIngredientTags = [];
@@ -35,7 +34,7 @@ class _ManageItemPageState extends State<ManageItemPage> {
   bool showDietaryTags = false;
   bool showIngredientTags = false;
 
-  final List<String> tasteOptions = [
+  final tasteOptions = <String>[
     'Savoury',
     'Sweet',
     'Bitter',
@@ -45,7 +44,7 @@ class _ManageItemPageState extends State<ManageItemPage> {
     'Tangy',
     'Earthy',
   ];
-  final List<String> dietaryOptions = [
+  final dietaryOptions = <String>[
     'Vegan',
     'Vegetarian',
     'Halal',
@@ -57,7 +56,7 @@ class _ManageItemPageState extends State<ManageItemPage> {
     'Low-carb',
     'Low-fat',
   ];
-  final List<String> ingredientOptions = [
+  final ingredientOptions = <String>[
     'Peanuts',
     'Tree nuts',
     'Soy',
@@ -76,19 +75,19 @@ class _ManageItemPageState extends State<ManageItemPage> {
   }
 
   Future<void> _loadCategories() async {
-    final snapshot =
+    final snap =
         await FirebaseFirestore.instance
             .collection('restaurants')
             .doc(widget.restaurantId)
             .collection('menu')
             .get();
-    final categories =
-        snapshot.docs
-            .map((doc) => doc['category']?.toString())
-            .whereType<String>()
+    final cats =
+        snap.docs
+            .map((d) => (d.data()['category'] as String?) ?? '')
+            .where((s) => s.isNotEmpty)
             .toSet()
             .toList();
-    setState(() => _categoryList = categories);
+    setState(() => _categoryList = cats);
   }
 
   Future<void> _loadItemData() async {
@@ -101,17 +100,16 @@ class _ManageItemPageState extends State<ManageItemPage> {
             .get();
     final data = doc.data();
     if (data != null) {
-      _nameController.text = data['name'] ?? '';
-      _priceController.text = data['price']?.toString() ?? '';
-      _selectedCategory = data['category'];
-      _imageUrl = data['imageUrl'];
-
-      final editorTags = data['editorTags'] as Map<String, dynamic>? ?? {};
-      selectedTasteTags = List<String>.from(editorTags['taste'] ?? []);
-      selectedDietaryTags = List<String>.from(editorTags['dietary'] ?? []);
-      selectedIngredientTags = List<String>.from(
-        editorTags['ingredients'] ?? [],
-      );
+      setState(() {
+        _nameController.text = data['name'] ?? '';
+        _priceController.text = (data['price']?.toString() ?? '');
+        _selectedCategory = data['category'] as String?;
+        _imageUrl = data['imageUrl'] as String?;
+        final editor = data['editorTags'] as Map<String, dynamic>? ?? {};
+        selectedTasteTags = List<String>.from(editor['taste'] ?? []);
+        selectedDietaryTags = List<String>.from(editor['dietary'] ?? []);
+        selectedIngredientTags = List<String>.from(editor['ingredients'] ?? []);
+      });
     }
   }
 
@@ -125,21 +123,20 @@ class _ManageItemPageState extends State<ManageItemPage> {
     setState(() => _isSaving = true);
 
     try {
-      String? uploadedImageUrl = _imageUrl;
+      String? url = _imageUrl;
       if (_imageFile != null) {
-        final ref = FirebaseStorage.instance.ref().child(
+        final ref = FirebaseStorage.instance.ref(
           'restaurant_menu/${DateTime.now().millisecondsSinceEpoch}.jpg',
         );
         await ref.putFile(_imageFile!);
-        uploadedImageUrl = await ref.getDownloadURL();
+        url = await ref.getDownloadURL();
       }
 
       final itemData = {
         'name': _nameController.text.trim(),
         'price': double.tryParse(_priceController.text.trim()) ?? 0.0,
         'category': _selectedCategory ?? '',
-        'imageUrl': uploadedImageUrl ?? '',
-        'tags': [],
+        'imageUrl': url ?? '',
         'editorTags': {
           'taste': selectedTasteTags,
           'dietary': selectedDietaryTags,
@@ -147,20 +144,19 @@ class _ManageItemPageState extends State<ManageItemPage> {
         },
       };
 
-      final ref = FirebaseFirestore.instance
+      final coll = FirebaseFirestore.instance
           .collection('restaurants')
           .doc(widget.restaurantId)
           .collection('menu');
 
       if (widget.itemId != null) {
-        await ref.doc(widget.itemId).update(itemData);
+        await coll.doc(widget.itemId).update(itemData);
       } else {
-        await ref.add(itemData);
+        await coll.add(itemData);
       }
 
-      Navigator.pop(context);
+      Navigator.of(context).pop();
     } catch (e) {
-      debugPrint('Error saving item: $e');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Failed to save item')));
@@ -169,38 +165,11 @@ class _ManageItemPageState extends State<ManageItemPage> {
     }
   }
 
-  Future<void> _deleteItem() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text('Delete Item?'),
-            content: const Text('This action cannot be undone.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text(
-                  'Delete',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
-          ),
-    );
-
-    if (confirm == true) {
-      await FirebaseFirestore.instance
-          .collection('restaurants')
-          .doc(widget.restaurantId)
-          .collection('menu')
-          .doc(widget.itemId)
-          .delete();
-      Navigator.pop(context);
-    }
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _priceController.dispose();
+    super.dispose();
   }
 
   @override
@@ -214,13 +183,6 @@ class _ManageItemPageState extends State<ManageItemPage> {
         foregroundColor: Colors.black,
         elevation: 0,
         title: Text(isEditing ? 'Edit Item' : 'Add Item'),
-        actions: [
-          if (isEditing)
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.redAccent),
-              onPressed: _deleteItem,
-            ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -234,31 +196,33 @@ class _ManageItemPageState extends State<ManageItemPage> {
                 child: Container(
                   height: 140,
                   decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
                     border: Border.all(color: Colors.grey.shade300),
                     borderRadius: BorderRadius.circular(12),
-                    color: Colors.white,
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child:
                         _imageFile != null
                             ? Image.file(_imageFile!, fit: BoxFit.cover)
-                            : (_imageUrl?.isNotEmpty == true
+                            : (_imageUrl != null && _imageUrl!.isNotEmpty
                                 ? Image.network(_imageUrl!, fit: BoxFit.cover)
-                                : Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
-                                    Icon(
-                                      Icons.add_photo_alternate_outlined,
-                                      color: Colors.grey,
-                                      size: 32,
-                                    ),
-                                    SizedBox(height: 6),
-                                    Text(
-                                      'Add Photo',
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ],
+                                : Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(
+                                        Icons.add_photo_alternate_outlined,
+                                        color: Colors.grey,
+                                        size: 32,
+                                      ),
+                                      SizedBox(height: 6),
+                                      Text(
+                                        'Add Photo',
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
                                 )),
                   ),
                 ),
@@ -276,7 +240,8 @@ class _ManageItemPageState extends State<ManageItemPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                validator: (v) => v == null || v.isEmpty ? 'Enter name' : null,
+                validator:
+                    (v) => v == null || v.trim().isEmpty ? 'Enter name' : null,
               ),
               const SizedBox(height: 12),
 
@@ -292,11 +257,12 @@ class _ManageItemPageState extends State<ManageItemPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                validator: (v) => v == null || v.isEmpty ? 'Enter price' : null,
+                validator:
+                    (v) => v == null || v.trim().isEmpty ? 'Enter price' : null,
               ),
               const SizedBox(height: 12),
 
-              // CATEGORY (inline dropdown)
+              // Category dropdown
               InputDecorator(
                 decoration: InputDecoration(
                   labelText: 'Category',
@@ -335,33 +301,34 @@ class _ManageItemPageState extends State<ManageItemPage> {
 
               if (_showCategoryDropdown)
                 Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 4),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey.shade300),
                     borderRadius: BorderRadius.circular(10),
-                    color: Colors.white,
                   ),
-                  child: Scrollbar(
-                    thumbVisibility: true,
-                    child: SizedBox(
-                      // show at most 4 items (each ~56px high)
-                      height:
-                          (_categoryList.length > 4
-                              ? 4 * 56.0
-                              : _categoryList.length * 56.0),
-                      child: ListView(
+                  child: SizedBox(
+                    // at most 4 items tall
+                    height:
+                        (_categoryList.length > 4 ? 4 : _categoryList.length) *
+                        48.0,
+                    child: Scrollbar(
+                      thumbVisibility: true,
+                      child: ListView.builder(
                         padding: EdgeInsets.zero,
-                        children:
-                            _categoryList.map((cat) {
-                              return ListTile(
-                                title: Text(cat),
-                                onTap: () {
-                                  setState(() {
-                                    _selectedCategory = cat;
-                                    _showCategoryDropdown = false;
-                                  });
-                                },
-                              );
-                            }).toList(),
+                        itemCount: _categoryList.length,
+                        itemBuilder: (ctx, i) {
+                          final cat = _categoryList[i];
+                          return ListTile(
+                            title: Text(cat),
+                            onTap: () {
+                              setState(() {
+                                _selectedCategory = cat;
+                                _showCategoryDropdown = false;
+                              });
+                            },
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -369,9 +336,9 @@ class _ManageItemPageState extends State<ManageItemPage> {
 
               const SizedBox(height: 16),
 
-              // Tag selectors (unchanged)
-              buildTagSelectorBox(
-                title: "Taste Tags",
+              // Taste tags
+              _buildTagSelectorBox(
+                title: 'Taste Tags',
                 selectedTags: selectedTasteTags,
                 allOptions: tasteOptions,
                 expanded: showTasteTags,
@@ -385,8 +352,10 @@ class _ManageItemPageState extends State<ManageItemPage> {
                 onTagRemove:
                     (tag) => setState(() => selectedTasteTags.remove(tag)),
               ),
-              buildTagSelectorBox(
-                title: "Dietary Tags",
+
+              // Dietary tags
+              _buildTagSelectorBox(
+                title: 'Dietary Tags',
                 selectedTags: selectedDietaryTags,
                 allOptions: dietaryOptions,
                 expanded: showDietaryTags,
@@ -401,8 +370,10 @@ class _ManageItemPageState extends State<ManageItemPage> {
                 onTagRemove:
                     (tag) => setState(() => selectedDietaryTags.remove(tag)),
               ),
-              buildTagSelectorBox(
-                title: "Ingredient Tags",
+
+              // Ingredient tags
+              _buildTagSelectorBox(
+                title: 'Ingredient Tags',
                 selectedTags: selectedIngredientTags,
                 allOptions: ingredientOptions,
                 expanded: showIngredientTags,
@@ -421,6 +392,8 @@ class _ManageItemPageState extends State<ManageItemPage> {
               ),
 
               const SizedBox(height: 24),
+
+              // Save button with spinner
               ElevatedButton(
                 onPressed: _isSaving ? null : _saveItem,
                 style: ElevatedButton.styleFrom(
@@ -430,11 +403,17 @@ class _ManageItemPageState extends State<ManageItemPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: Text(
-                  _isSaving
-                      ? 'Saving...'
-                      : (isEditing ? 'Update Item' : 'Save Item'),
-                ),
+                child:
+                    _isSaving
+                        ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.black,
+                          ),
+                        )
+                        : Text(isEditing ? 'Update Item' : 'Save Item'),
               ),
             ],
           ),
@@ -443,7 +422,7 @@ class _ManageItemPageState extends State<ManageItemPage> {
     );
   }
 
-  Widget buildTagSelectorBox({
+  Widget _buildTagSelectorBox({
     required String title,
     required List<String> selectedTags,
     required List<String> allOptions,
@@ -470,13 +449,15 @@ class _ManageItemPageState extends State<ManageItemPage> {
                     spacing: 6,
                     runSpacing: 6,
                     children:
-                        selectedTags.map((tag) {
-                          return Chip(
-                            label: Text(tag),
-                            backgroundColor: Colors.grey.shade200,
-                            onDeleted: () => onTagRemove(tag),
-                          );
-                        }).toList(),
+                        selectedTags
+                            .map(
+                              (tag) => Chip(
+                                label: Text(tag),
+                                backgroundColor: Colors.grey.shade200,
+                                onDeleted: () => onTagRemove(tag),
+                              ),
+                            )
+                            .toList(),
                   ),
                 ),
                 IconButton(
@@ -493,14 +474,16 @@ class _ManageItemPageState extends State<ManageItemPage> {
                   child: ListView(
                     padding: EdgeInsets.zero,
                     children:
-                        allOptions.map((tag) {
-                          return CheckboxListTile(
-                            dense: true,
-                            title: Text(tag),
-                            value: selectedTags.contains(tag),
-                            onChanged: (_) => onTagToggle(tag),
-                          );
-                        }).toList(),
+                        allOptions
+                            .map(
+                              (tag) => CheckboxListTile(
+                                dense: true,
+                                title: Text(tag),
+                                value: selectedTags.contains(tag),
+                                onChanged: (_) => onTagToggle(tag),
+                              ),
+                            )
+                            .toList(),
                   ),
                 ),
               ),

@@ -11,25 +11,25 @@ class RedeemRewardsSection extends StatelessWidget {
       title: 'Free Coffee',
       cost: 200,
       imageUrl:
-          'https://www.wikidata.org/wiki/Q8486#/media/File:A_small_cup_of_coffee.JPG',
+          'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/redeem_rewards%2Fcoffeeredeem.jpg?alt=media&token=685b426c-b9d0-4ea6-b12b-455119c4427f',
     ),
     _RewardData(
       title: '10% Off Meal',
       cost: 300,
       imageUrl:
-          'https://unsplash.com/photos/vegetable-and-meat-on-bowl-kcA-c3f_3FE',
+          'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/redeem_rewards%2Fpizzameal.jpg?alt=media&token=42cf31de-a050-40ec-bce8-e6b7558a0bbf',
     ),
     _RewardData(
       title: 'Movie Ticket',
       cost: 500,
       imageUrl:
-          'https://images.unsplash.com/photo-1517604931442-7bd3c10305e7?auto=format&fit=crop&w=800&q=80',
+          'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/redeem_rewards%2Fticketvoucher.jpg?alt=media&token=5fd5f74d-6eae-4a98-b0a5-ca40920aaff9',
     ),
     _RewardData(
       title: 'Gift Voucher',
       cost: 750,
       imageUrl:
-          'https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=800&q=80',
+          'https://firebasestorage.googleapis.com/v0/b/foodiesfind-21552.firebasestorage.app/o/redeem_rewards%2FGiftVoucher.png?alt=media&token=cdb9b3bb-465e-48c5-ade0-7f7ad5f59aba',
     ),
   ];
 

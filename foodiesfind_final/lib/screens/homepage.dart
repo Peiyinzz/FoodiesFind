@@ -257,36 +257,36 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 30),
 
               // — DEBUG: upload synthetic reviews
-              Center(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await uploadSyntheticReviews();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Synthetic reviews uploaded!'),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    side: const BorderSide(color: Color(0xFF145858)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(60),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: const Text(
-                    'Upload Synthetic Reviews',
-                    style: TextStyle(
-                      color: Color(0xFF145858),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
+              // Center(
+              //   child: ElevatedButton(
+              //     onPressed: () async {
+              //       await uploadSyntheticReviews();
+              //       ScaffoldMessenger.of(context).showSnackBar(
+              //         const SnackBar(
+              //           content: Text('Synthetic reviews uploaded!'),
+              //         ),
+              //       );
+              //     },
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: Colors.white,
+              //       side: const BorderSide(color: Color(0xFF145858)),
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(60),
+              //       ),
+              //       padding: const EdgeInsets.symmetric(
+              //         horizontal: 24,
+              //         vertical: 12,
+              //       ),
+              //     ),
+              //     child: const Text(
+              //       'Upload Synthetic Reviews',
+              //       style: TextStyle(
+              //         color: Color(0xFF145858),
+              //         fontWeight: FontWeight.bold,
+              //       ),
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),

@@ -267,14 +267,14 @@ class _RestaurantListingPageState extends State<RestaurantListingPage> {
                                     fit: BoxFit.cover,
                                     errorBuilder:
                                         (_, __, ___) => Image.asset(
-                                          'assets/images/Mews-cafe-food-pic-2020.jpg',
+                                          'assets/images/FoodiesFindSquareLogo.png',
                                           width: 80,
                                           height: 80,
                                           fit: BoxFit.cover,
                                         ),
                                   )
                                   : Image.asset(
-                                    'assets/images/Mews-cafe-food-pic-2020.jpg',
+                                    'assets/images/FoodiesFindSquareLogo.png',
                                     width: 80,
                                     height: 80,
                                     fit: BoxFit.cover,

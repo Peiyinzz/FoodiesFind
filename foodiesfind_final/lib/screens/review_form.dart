@@ -4,6 +4,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../widgets/success_popup.dart';
 import '../widgets/tags_info.dart';
 
@@ -22,6 +23,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
   List<XFile> selectedPhotos = [];
   List<DishReview> dishes = [DishReview()];
   List<String> menuItems = [];
+  bool _isSaving = false;
 
   final List<String> tasteOptions = [
     'Savoury',
@@ -73,7 +75,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
     final items =
         snapshot.docs
             .map((doc) => doc.data()['name']?.toString() ?? '')
-            .where((name) => name.isNotEmpty)
+            .where((n) => n.isNotEmpty)
             .toList()
           ..sort();
     setState(() => menuItems = items);
@@ -94,41 +96,74 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
       );
       return;
     }
-    final reviewData = {
-      'userId': user.uid,
-      'restaurantId': widget.restaurantId,
-      'rating': rating,
-      'text': _experienceController.text.trim(),
-      'createdAt': FieldValue.serverTimestamp(),
-      'dishes':
-          dishes
-              .map(
-                (dish) => {
-                  'name': dish.name,
-                  'taste': dish.taste,
-                  'ingredients': dish.ingredients,
-                  'dietary': dish.dietary,
-                },
-              )
-              .toList(),
-    };
+    setState(() => _isSaving = true);
+
     try {
-      await FirebaseFirestore.instance
+      // 1) create the review doc without photos
+      final reviewRef = await FirebaseFirestore.instance
           .collection('user_reviews')
-          .add(reviewData);
+          .add({
+            'userId': user.uid,
+            'restaurantId': widget.restaurantId,
+            'rating': rating,
+            'text': _experienceController.text.trim(),
+            'createdAt': FieldValue.serverTimestamp(),
+            'dishes':
+                dishes
+                    .map(
+                      (d) => {
+                        'name': d.name,
+                        'taste': d.taste,
+                        'ingredients': d.ingredients,
+                        'dietary': d.dietary,
+                      },
+                    )
+                    .toList(),
+          });
+
+      // 2) upload photos (if any)
+      if (selectedPhotos.isNotEmpty) {
+        final storage = FirebaseStorage.instance;
+        List<String> photoUrls = [];
+        for (var xfile in selectedPhotos) {
+          final file = File(xfile.path);
+          final ref = storage
+              .ref()
+              .child('review_photos')
+              .child(reviewRef.id)
+              .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
+          await ref.putFile(file);
+          photoUrls.add(await ref.getDownloadURL());
+        }
+        // 3) update Firestore with the URLs
+        await reviewRef.update({'photoUrls': photoUrls});
+      }
+
       _showSuccessDialog();
     } catch (e) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Failed to submit review.')));
+    } finally {
+      setState(() => _isSaving = false);
     }
   }
 
-  Widget _buildInfoLabel(
-    String label,
-    Map<String, String> descriptions,
-    String title,
-  ) {
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black54,
+      builder:
+          (_) => const SuccessPopup(message: 'Review submitted successfully!'),
+    );
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.of(context, rootNavigator: true).pop();
+      Navigator.pop(context);
+    });
+  }
+
+  Widget _buildInfoLabel(String label, Map<String, String> desc, String title) {
     return Row(
       children: [
         Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -137,9 +172,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
           onTap:
               () => showDialog(
                 context: context,
-                builder:
-                    (_) =>
-                        TagInfoDialog(title: title, descriptions: descriptions),
+                builder: (_) => TagInfoDialog(title: title, descriptions: desc),
               ),
           child: const Icon(Icons.info_outline, size: 18, color: Colors.grey),
         ),
@@ -171,8 +204,6 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
 
   Widget _buildDishSection(int index) {
     final dish = dishes[index];
-    final fieldWidth = MediaQuery.of(context).size.width - 40;
-
     return Padding(
       padding: const EdgeInsets.only(top: 28),
       child: Column(
@@ -210,7 +241,6 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ===== Autocomplete with scrollbar & max height =====
                 Autocomplete<String>(
                   optionsBuilder: (value) {
                     final q = value.text.toLowerCase();
@@ -221,7 +251,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                         );
                   },
                   onSelected: (sel) => dish.nameController.text = sel,
-                  fieldViewBuilder: (ctx, ctrl, fn, _) {
+                  fieldViewBuilder: (ctx, ctrl, fn, onFieldSubmitted) {
                     ctrl.text = dish.nameController.text;
                     return TextField(
                       controller: ctrl,
@@ -239,7 +269,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                     );
                   },
                   optionsViewBuilder: (context, onSelected, options) {
-                    final fieldWidth = MediaQuery.of(context).size.width - 60;
+                    final width = MediaQuery.of(context).size.width - 60;
                     return Align(
                       alignment: Alignment.topLeft,
                       child: Padding(
@@ -248,7 +278,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                           elevation: 2,
                           borderRadius: BorderRadius.circular(8),
                           child: SizedBox(
-                            width: fieldWidth,
+                            width: width,
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxHeight: 200),
                               child: Scrollbar(
@@ -358,21 +388,6 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
     if (dishes.length < 5) setState(() => dishes.add(DishReview()));
   }
 
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black54,
-      builder:
-          (_) =>
-              const SuccessPopup(message: 'Review is submitted successfully!'),
-    );
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.of(context, rootNavigator: true).pop();
-      Navigator.pop(context);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -386,7 +401,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: ElevatedButton(
-              onPressed: _submitReview,
+              onPressed: _isSaving ? null : _submitReview,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 side: const BorderSide(color: Color(0xFF145858)),
@@ -398,14 +413,21 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                   vertical: 8,
                 ),
               ),
-              child: const Text('Submit'),
+              child:
+                  _isSaving
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                      : const Text('Submit'),
             ),
           ),
         ],
       ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (scroll) {
-          FocusScope.of(context).unfocus();
+          if (scroll.depth == 0) FocusScope.of(context).unfocus();
           return false;
         },
         child: SingleChildScrollView(

@@ -55,20 +55,20 @@ class _RestaurantMenuPageState extends State<RestaurantMenuPage> {
         title: const Text('Menu', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.upload_file),
-            onPressed: () async {
-              await uploadMenuItems(widget.restaurantId);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('✅ Menu uploaded successfully!'),
-                  ),
-                );
-              }
-            },
-            tooltip: 'Upload Menu',
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.upload_file),
+          //   onPressed: () async {
+          //     await uploadMenuItems(widget.restaurantId);
+          //     if (context.mounted) {
+          //       ScaffoldMessenger.of(context).showSnackBar(
+          //         const SnackBar(
+          //           content: Text('✅ Menu uploaded successfully!'),
+          //         ),
+          //       );
+          //     }
+          //   },
+          //   tooltip: 'Upload Menu',
+          // ),
           IconButton(
             onPressed: () {
               Navigator.pushNamed(

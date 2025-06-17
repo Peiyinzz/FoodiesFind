@@ -61,6 +61,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
           final address = data['address'] ?? '';
           final phone = data['phoneNum'] ?? '';
           final openingHours = data['openingHours'] as List<dynamic>? ?? [];
+          final cuisine = (data['cuisineType'] ?? '').toString().trim();
 
           // grab imageURL, if any
           final imageUrl = (data['imageURL'] ?? '').toString().trim();
@@ -86,12 +87,12 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                                 fit: BoxFit.cover,
                                 errorBuilder:
                                     (_, __, ___) => Image.asset(
-                                      'assets/images/Mews-cafe-food-pic-2020.jpg',
+                                      'assets/images/FoodiesFindSquareLogo.png',
                                       fit: BoxFit.cover,
                                     ),
                               )
                               : Image.asset(
-                                'assets/images/Mews-cafe-food-pic-2020.jpg',
+                                'assets/images/FoodiesFindSquareLogo.png',
                                 fit: BoxFit.cover,
                               ),
                           Container(
@@ -107,8 +108,35 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                               ),
                             ),
                           ),
+                          // Cuisine, if any:
+                          if (cuisine.isNotEmpty)
+                            Positioned(
+                              bottom: 68, // just above the name
+                              left: 16,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  cuisine.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          // Restaurant name
                           Positioned(
-                            bottom: 16,
+                            bottom: cuisine.isNotEmpty ? 24 : 16,
                             left: 16,
                             child: Text(
                               name,
@@ -119,6 +147,7 @@ class _RestaurantDetailPageState extends State<RestaurantDetailPage> {
                               ),
                             ),
                           ),
+
                           SafeArea(
                             child: Align(
                               alignment: Alignment.topLeft,
@@ -620,6 +649,8 @@ class _ReviewsListState extends State<ReviewsList> {
                 final data = doc.data() as Map<String, dynamic>;
                 final docId = doc.id;
                 final userId = data['userId'] ?? '';
+                final photoUrls = List<String>.from(data['photoUrls'] ?? []);
+
                 final rating = (data['rating'] ?? 0).toDouble();
                 final text = data['text'] ?? '';
                 final dishes = data['dishes'] as List<dynamic>? ?? [];
@@ -782,8 +813,43 @@ class _ReviewsListState extends State<ReviewsList> {
                                 },
                               ),
                             ],
+                            if (photoUrls.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children:
+                                    photoUrls.map((url) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          showDialog(
+                                            context: context,
+                                            builder:
+                                                (_) => Dialog(
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  child: InteractiveViewer(
+                                                    child: Image.network(url),
+                                                  ),
+                                                ),
+                                          );
+                                        },
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          child: Image.network(
+                                            url,
+                                            width: 80,
+                                            height: 80,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                              ),
+                            ],
                           ],
-
                           // Bottom row: date and votes
                           Row(
                             children: [
@@ -955,6 +1021,7 @@ class _GoogleReviewsState extends State<GoogleReviews> {
                 final downvotes = List<String>.from(review['downvotes'] ?? []);
                 final upCount = upvotes.length;
                 final downCount = downvotes.length;
+                final photoUrls = List<String>.from(review['photoUrls'] ?? []);
 
                 return Container(
                   margin: const EdgeInsets.symmetric(
