@@ -145,7 +145,8 @@ class TopPicksSection extends StatelessWidget {
                   return FutureBuilder<List<dynamic>>(
                     future: Future.wait([infoFuture, tagsFuture]),
                     builder: (context, comboSnap) {
-                      if (comboSnap.connectionState == ConnectionState.waiting) {
+                      if (comboSnap.connectionState ==
+                          ConnectionState.waiting) {
                         return const SizedBox(
                           width: 240,
                           child: Center(child: CircularProgressIndicator()),
@@ -172,9 +173,10 @@ class TopPicksSection extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => RestaurantDetailPage(
-                                restaurantId: restId,
-                              ),
+                              builder:
+                                  (_) => RestaurantDetailPage(
+                                    restaurantId: restId,
+                                  ),
                             ),
                           );
                         },
