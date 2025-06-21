@@ -55,8 +55,6 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.restaurantId != null) {
-    }
     _placesService = GooglePlacesService(googleApiKey);
     _initializeLocation().then((_) {
       if (widget.restaurantId != null && widget.restaurantId!.isNotEmpty) {
@@ -250,6 +248,33 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
     }
   }
 
+  /// ---- DYNAMIC POPULAR DISH CALCULATION ----
+  Future<String> getPopularDish(String restaurantId) async {
+    final reviews =
+        await FirebaseFirestore.instance
+            .collection('user_reviews')
+            .where('restaurantId', isEqualTo: restaurantId)
+            .get();
+
+    final dishCount = <String, int>{};
+
+    for (final doc in reviews.docs) {
+      final data = doc.data();
+      if (data['dishes'] is List) {
+        for (final dish in data['dishes']) {
+          final name = (dish['name'] ?? '').toString();
+          if (name.isNotEmpty) {
+            dishCount[name] = (dishCount[name] ?? 0) + 1;
+          }
+        }
+      }
+    }
+
+    if (dishCount.isEmpty) return "No data";
+    return dishCount.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
+  }
+
+  /// ---- SHOW DIRECTIONS FEATURE ----
   Future<void> _showRouteToRestaurant(DocumentSnapshot doc) async {
     setState(() {
       _tempRestaurant = _selectedRestaurant;
@@ -444,9 +469,21 @@ class _NearbyMapScreenState extends State<NearbyMapScreen> {
               ],
             ),
             const SizedBox(height: 10),
-            const Text(
-              'Popular Dish: [dish]',
-              style: TextStyle(color: Colors.white),
+            // Show dynamically-calculated popular dish
+            FutureBuilder<String>(
+              future: getPopularDish(doc.id),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Text(
+                    'Popular Dish: ...',
+                    style: TextStyle(color: Colors.white),
+                  );
+                }
+                return Text(
+                  'Popular Dish: ${snapshot.data ?? "No data"}',
+                  style: const TextStyle(color: Colors.white),
+                );
+              },
             ),
             const SizedBox(height: 12),
             Center(

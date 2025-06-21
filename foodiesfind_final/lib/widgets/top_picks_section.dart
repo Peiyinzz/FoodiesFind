@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'fill_card.dart';
+import '../screens/restaurant_detail.dart';
 
 /// Fetches recommendations from your FastAPI endpoint.
 Future<List<Map<String, dynamic>>> fetchRecommendations(String userId) async {
@@ -144,8 +145,7 @@ class TopPicksSection extends StatelessWidget {
                   return FutureBuilder<List<dynamic>>(
                     future: Future.wait([infoFuture, tagsFuture]),
                     builder: (context, comboSnap) {
-                      if (comboSnap.connectionState ==
-                          ConnectionState.waiting) {
+                      if (comboSnap.connectionState == ConnectionState.waiting) {
                         return const SizedBox(
                           width: 240,
                           child: Center(child: CircularProgressIndicator()),
@@ -168,6 +168,16 @@ class TopPicksSection extends StatelessWidget {
                         line2: dishName,
                         line3: tagLine,
                         compact: true,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => RestaurantDetailPage(
+                                restaurantId: restId,
+                              ),
+                            ),
+                          );
+                        },
                       );
                     },
                   );
