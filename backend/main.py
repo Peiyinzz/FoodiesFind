@@ -1,18 +1,16 @@
+import os
+import json
 from fastapi import FastAPI
-from firebase_admin import credentials, firestore, initialize_app
-import os, sys, json
+from firebase_admin import credentials, initialize_app, firestore
 
-# (you can keep or remove the debug prints – up to you)
-sys.stdout.write("FIREBASE_PRIVATE_KEY repr:\n")
-sys.stdout.write(repr(os.getenv("FIREBASE_PRIVATE_KEY")) + "\n\n")
-
-# Build _one_ creds dict – with the replace() applied here:
+# Build a single dict, with the replace applied exactly here:
 cred_dict = {
     "type":                        os.getenv("FIREBASE_TYPE"),
     "project_id":                  os.getenv("FIREBASE_PROJECT_ID"),
     "private_key_id":              os.getenv("FIREBASE_PRIVATE_KEY_ID"),
+    # 🔑 Replace literal \n with actual newlines
     "private_key":                 os.getenv("FIREBASE_PRIVATE_KEY", "")
-                                         .replace("\\n", "\n"),
+                                          .replace("\\n", "\n"),
     "client_email":                os.getenv("FIREBASE_CLIENT_EMAIL"),
     "client_id":                   os.getenv("FIREBASE_CLIENT_ID"),
     "auth_uri":                    os.getenv("FIREBASE_AUTH_URI"),
@@ -21,25 +19,18 @@ cred_dict = {
     "client_x509_cert_url":        os.getenv("FIREBASE_CLIENT_CERT_URL"),
 }
 
-sys.stdout.write("Creds dict preview:\n")
-sys.stdout.write(
-  json.dumps(
-    { k: (v[:30] + "…") if isinstance(v, str) else v for k,v in cred_dict.items() },
-    indent=2
-  )
-)
-sys.stdout.write("\n\n")
+# (optional) inspect it
+print(json.dumps({k: (v[:30]+"…") for k,v in cred_dict.items()}, indent=2))
 
-# Now initialize with that same dict
+# Initialize Firebase with that exact dict
 cred = credentials.Certificate(cred_dict)
 initialize_app(cred)
 
 app = FastAPI()
-
 @app.get("/")
 def root():
     return {"message": "Backend is running!"}
 
-# import and mount your router afterwards
+# mount your router after init
 from recommend import router as recommend_router
 app.include_router(recommend_router)
