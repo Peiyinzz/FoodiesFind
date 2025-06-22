@@ -53,4 +53,5 @@ migrate_working_dir/
 # =============================
 # Obfuscation / Symbolication
 app.*.symbols
-app.*.map.jsonbackend/firebase_config.json
+app.*.map.json
+backend/firebase_config.json
